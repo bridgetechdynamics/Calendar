@@ -834,18 +834,58 @@
         elements.panelDisplay.classList.remove('hidden');
       }
 
-      function showEditPanel(eventId) {
-        const eventData = eventsById.get(eventId);
+      function clearEditFields() {
+        if (elements.editLabel) elements.editLabel.value = '';
+        if (elements.editHref) elements.editHref.value = '';
+        if (elements.editDate) elements.editDate.value = '';
+        if (elements.editIdValue) elements.editIdValue.textContent = '';
+      }
+
+      function populateEditFields(eventData) {
         if (!eventData) {
+          clearEditFields();
           return;
         }
-        state.editingEventId = eventId;
-        elements.editLabel.value = eventData.label;
-        elements.editHref.value = eventData.href || '';
-        elements.editDate.value = eventData.date;
-        if (elements.editIdValue) {
-          elements.editIdValue.textContent = eventData.id;
+        if (elements.editLabel) elements.editLabel.value = eventData.label;
+        if (elements.editHref) elements.editHref.value = eventData.href || '';
+        if (elements.editDate) elements.editDate.value = eventData.date || '';
+        if (elements.editIdValue) elements.editIdValue.textContent = eventData.id;
+      }
+
+      function prepareDefaultEdit() {
+        const dayEvents = getEventsForDate(state.panelDate);
+        if (dayEvents.length) {
+          const eventData = dayEvents[0];
+          state.editingEventId = eventData.id;
+          populateEditFields(eventData);
+        } else {
+          state.editingEventId = null;
+          clearEditFields();
         }
+      }
+
+      function showEditPanel(eventId) {
+        const dayEvents = getEventsForDate(state.panelDate);
+        const targetId = (typeof eventId !== 'undefined' && eventId !== null)
+          ? eventId
+          : (dayEvents.length ? dayEvents[0].id : null);
+        if (!targetId) {
+          state.editingEventId = null;
+          clearEditFields();
+          hideAllPanels();
+          elements.panelEdit.classList.remove('hidden');
+          return;
+        }
+        const eventData = eventsById.get(targetId);
+        if (!eventData) {
+          state.editingEventId = null;
+          clearEditFields();
+          hideAllPanels();
+          elements.panelEdit.classList.remove('hidden');
+          return;
+        }
+        state.editingEventId = targetId;
+        populateEditFields(eventData);
         hideAllPanels();
         elements.panelEdit.classList.remove('hidden');
       }
@@ -1120,6 +1160,7 @@
       function openDayPanel(dateISO) {
         state.panelDate = dateISO;
         renderDayPanel();
+        prepareDefaultEdit();
         elements.dayPanel.classList.remove('hidden');
         elements.dayPanel.setAttribute('aria-hidden', 'false');
       }

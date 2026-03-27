@@ -73,3 +73,13 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
   Tests not run (UI only).
 Token usage: total=1,635,940 input=1,579,521 (+ 7,598,592 cached) output=56,419 (reasoning 30,848)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Introduced helpers to clear/populate the edit form and to prime it with the first event of the selected day; now the form auto-fills the first event when available and clears when the d
+    ay has no events (calendar.html#L837-L865).
+  - openDayPanel now calls that preparation before showing the overlay so the edit controls are already populated as soon as the panel loads for a day (calendar.html#L1120-L1124).
+
+  Tests not run (UI only).
+Token usage: total=1,668,265 input=1,606,214 (+ 8,692,224 cached) output=62,051 (reasoning 34,880)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
