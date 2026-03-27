@@ -16,3 +16,12 @@
   2. Hook the provided CalendarApp API into your broader site logic or style it further once the layout is finalized.
 Token usage: total=213,125 input=195,442 (+ 191,744 cached) output=17,683 (reasoning 8,384)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+• - Re-tuned the CSS root variables, body gradient, and control treatments to a “mellow cream” palette with warm accents so the calendar now feels light, airy, and readable while keeping bu
+    tton hover/active states pleasant. calendar.html#L7
+  - Adjusted the .calendar-shell container and overlay styles so the grid, modal, and panels now sit on creamy cards instead of the prior dark shell, matching the new theme across the entire
+    experience. calendar.html#L35
+
+  Tests were not run (visual only). Please open calendar.html in a browser to confirm the new warm theme looks right on your client’s hardware.
+Token usage: total=379,748 input=356,025 (+ 325,760 cached) output=23,723 (reasoning 11,072)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080

@@ -6,14 +6,14 @@
   <title>Dynamic Vanilla Calendar</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #030712;
-      --card: #0f172a;
-      --border: rgba(148, 163, 184, 0.2);
-      --accent: #38bdf8;
-      --accent-strong: #22d3ee;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
+      color-scheme: light;
+      --bg: #fdf7ed;
+      --card: #fff8ef;
+      --border: rgba(209, 180, 149, 0.55);
+      --accent: #f4a261;
+      --accent-strong: #e76f51;
+      --text: #2c1c12;
+      --muted: #8f6b4a;
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     }
 
@@ -24,7 +24,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, rgba(14, 165, 233, 0.25), transparent 45%) , var(--bg);
+      background: radial-gradient(circle at top, rgba(252, 190, 135, 0.45), transparent 45%), var(--bg);
       color: var(--text);
       display: flex;
       align-items: center;
@@ -34,11 +34,11 @@
 
     .calendar-shell {
       width: min(100%, 960px);
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(255, 255, 255, 0.95);
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: 2rem;
-      box-shadow: 0 30px 60px rgba(2, 6, 23, 0.6);
+      box-shadow: 0 30px 60px rgba(209, 180, 149, 0.35);
       position: relative;
     }
 
@@ -75,8 +75,8 @@
       display: flex;
       gap: 0.25rem;
       align-items: center;
-      background: rgba(148, 163, 184, 0.05);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(244, 162, 97, 0.12);
+      border: 1px solid rgba(209, 180, 149, 0.35);
       border-radius: 999px;
       padding: 0.35rem 0.65rem;
     }
@@ -106,27 +106,28 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      border: 1px solid rgba(59, 130, 246, 0.5);
-      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(209, 180, 149, 0.5);
+      background: rgba(255, 255, 255, 0.9);
       display: grid;
       place-items: center;
       cursor: pointer;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .round-button:hover {
-      border-color: var(--accent);
+      border-color: rgba(231, 111, 81, 0.9);
       transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(231, 111, 81, 0.25);
     }
 
     .today-button {
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(14, 165, 233, 0.15));
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.45), rgba(240, 200, 150, 0.4));
     }
 
     .calendar-grid {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(255, 248, 239, 0.95);
+      border: 1px solid var(--border);
       border-radius: 18px;
       padding: 1rem;
     }
@@ -150,14 +151,15 @@
       min-height: 110px;
       padding: 0.6rem;
       margin: 0.15rem;
-      background: rgba(148, 163, 184, 0.05);
+      background: rgba(255, 255, 255, 0.9);
       position: relative;
       cursor: pointer;
-      transition: border 0.2s ease, background 0.2s ease;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
     }
 
     .day-cell:hover {
-      border: 1px solid rgba(59, 130, 246, 0.4);
+      border: 1px solid rgba(231, 111, 81, 0.45);
+      box-shadow: 0 10px 30px rgba(231, 111, 81, 0.15);
     }
 
     .day-number {
@@ -166,7 +168,7 @@
     }
 
     .day-cell.today {
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 0 2px rgba(231, 111, 81, 0.5);
     }
 
     .day-cell.selected {
@@ -184,8 +186,8 @@
       padding: 0.2rem 0.45rem;
       border-radius: 999px;
       font-size: 0.75rem;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.4);
+      background: rgba(244, 162, 97, 0.15);
+      border: 1px solid rgba(231, 111, 81, 0.4);
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
@@ -216,19 +218,20 @@
       font-size: 0.6rem;
       text-transform: uppercase;
       letter-spacing: 0.2em;
-      color: rgba(235, 226, 52, 0.9);
+      color: #d27836;
     }
 
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(2, 6, 23, 0.8);
-      backdrop-filter: blur(3px);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(2px);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1rem;
       z-index: 50;
+      color: var(--text);
     }
 
     .panel {
@@ -236,10 +239,10 @@
       border-radius: 24px;
       max-width: 480px;
       width: 100%;
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      border: 1px solid rgba(209, 180, 149, 0.4);
       padding: 1.5rem;
       position: relative;
-      box-shadow: 0 30px 60px rgba(2, 6, 23, 0.6);
+      box-shadow: 0 30px 60px rgba(209, 180, 149, 0.35);
     }
 
     .overlay.hidden {
@@ -264,7 +267,7 @@
     }
 
     .event-entry {
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      border: 1px solid rgba(209, 180, 149, 0.4);
       padding: 0.75rem 0.85rem;
       border-radius: 16px;
       margin-bottom: 0.55rem;
@@ -273,6 +276,7 @@
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
+      background: rgba(255, 255, 255, 0.85);
     }
 
     .event-entry a {
