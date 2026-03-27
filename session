@@ -23,7 +23,6 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
     experience. calendar.html#L35
 
 Token usage: total=379,748 input=356,025 (+ 325,760 cached) output=23,723 (reasoning 11,072)
-To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
 
 ─ Worked for 1m 22s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -32,8 +31,26 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
   - Wired the new controls via attachApiPanelHandlers, which parses the pasted JSON, calls CalendarApp.addEvents/removeEvents, and pops status messages, and introduced a logEvents helper pl
     us window.CalendarAPI so the “Log current events” button and console debugging rely on the public API (calendar.html#L973, calendar.html#L1090-L1135).
 
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 • - Updated the API panel buttons so their gradient, border radius, and hover feel now match the “Today” pill at the top — they now carry the same warm linear gradient, rounded corners, and
     soft drop shadow while keeping the existing save-button class for consistency (calendar.html#L418-L424, new additions around calendar.html#L177-L187).
 Token usage: total=781,216 input=746,293 (+ 1,293,568 cached) output=34,923 (reasoning 18,496)
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added the “Holidays” toggle control immediately to the right of the Today button along with the accompanying switch markup so the toggle is visible even though it’s just a stub for now
+    (calendar.html#L550).
+  - Styled the new control with the slider appearance used elsewhere in the header so it visually matches the surrounding pill controls (calendar.html#L91).
+
+Token usage: total=1,130,086 input=1,084,372 (+ 4,022,528 cached) output=45,714 (reasoning 25,344)
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - The header toggle now actually controls a state.showHolidays flag: the state object tracks the setting, the slider’s input is wired to update that flag and trigger a re-render, and sync
+    Selects keeps the switch in sync when the month/year controls redraw the header (calendar.html#L600, calendar.html#L753, calendar.html#L860).
+  - The renderer now only injects the holiday-label spans when state.showHolidays is true, so flipping the toggle hides or shows the holiday badges immediately (calendar.html#L1037).
+
+  Tests not run (UI only); feel free to try the toggle next to Today to confirm the labels disappear/reappear.
+Token usage: total=1,159,672 input=1,111,457 (+ 5,040,896 cached) output=48,215 (reasoning 26,432)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
