@@ -64,3 +64,12 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
   No automated tests were run (visual/UI change only).
 Token usage: total=1,555,275 input=1,503,540 (+ 6,386,816 cached) output=51,735 (reasoning 27,584)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Both cancel actions for the edit and delete flows now call hidePanel() instead of just switching views, so the overlay closes entirely when you back out of editing or confirming a delete
+    (calendar.html#L804, calendar.html#L821).
+
+  Tests not run (UI only).
+Token usage: total=1,635,940 input=1,579,521 (+ 7,598,592 cached) output=56,419 (reasoning 30,848)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
