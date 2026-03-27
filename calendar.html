@@ -1192,6 +1192,7 @@
         });
       }
 
+      // this is where intialEvents are made persistant
       function init(initialEvents = []) {
         cacheElements();
         populateSelects();
@@ -1221,7 +1222,9 @@
         { id: 1, label: 'Design review', href: 'https://example.com/client-review', date: '2026-03-18' },
         { id: 2, label: 'Team sync', date: '2026-03-18' },
         { id: 3, label: 'Client demo', href: 'https://example.com/demo', date: '2026-03-22' },
-        { id: 4, label: 'Launch prep', date: '2026-03-27' }
+        { id: 4, label: 'Launch prep', date: '2026-03-27' },
+        { id: 5, label: 'Client demo', href: 'https://example.com/demo', date: '2026-03-27' },
+        { id: 6, label: 'Team sync', date: '2026-03-27' }
       ];
 
       document.addEventListener('DOMContentLoaded', () => {
