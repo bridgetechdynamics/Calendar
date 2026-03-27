@@ -389,6 +389,13 @@
       font-size: 1.4rem;
     }
 
+    .edit-id {
+      margin: 0 0 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
     .event-entry {
       border: 1px solid rgba(209, 180, 149, 0.4);
       padding: 0.75rem 0.85rem;
@@ -607,6 +614,7 @@
 
       <div id="panel-edit" class="panel-section hidden">
         <h3>Edit Event</h3>
+        <p class="edit-id">Event ID: <span id="edit-id-value"></span></p>
         <form id="edit-form">
           <div>
             <label for="edit-label">Label</label>
@@ -694,6 +702,7 @@
         elements.editLabel = document.getElementById('edit-label');
         elements.editHref = document.getElementById('edit-href');
         elements.editDate = document.getElementById('edit-date');
+        elements.editIdValue = document.getElementById('edit-id-value');
         elements.closePanel = document.querySelector('.close-panel');
         elements.holidayToggle = document.getElementById('holiday-toggle');
       }
@@ -834,6 +843,9 @@
         elements.editLabel.value = eventData.label;
         elements.editHref.value = eventData.href || '';
         elements.editDate.value = eventData.date;
+        if (elements.editIdValue) {
+          elements.editIdValue.textContent = eventData.id;
+        }
         hideAllPanels();
         elements.panelEdit.classList.remove('hidden');
       }

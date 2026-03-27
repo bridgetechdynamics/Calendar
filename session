@@ -54,3 +54,13 @@ Token usage: total=1,130,086 input=1,084,372 (+ 4,022,528 cached) output=45,714 
   Tests not run (UI only); feel free to try the toggle next to Today to confirm the labels disappear/reappear.
 Token usage: total=1,159,672 input=1,111,457 (+ 5,040,896 cached) output=48,215 (reasoning 26,432)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added an “Event ID” line above the edit form and styled it so the panel clearly shows which event you are editing (calendar.html#L392-L401).
+  - The script now caches #edit-id-value and populates it inside showEditPanel, keeping the displayed ID synchronized whenever the edit panel opens (calendar.html#L706,
+    calendar.html#L836-L848).
+
+  No automated tests were run (visual/UI change only).
+Token usage: total=1,555,275 input=1,503,540 (+ 6,386,816 cached) output=51,735 (reasoning 27,584)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
