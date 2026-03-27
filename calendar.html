@@ -132,6 +132,76 @@
       padding: 1rem;
     }
 
+    .api-panel {
+      margin-top: 1.5rem;
+      border: 1px solid rgba(209, 180, 149, 0.4);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1.5rem;
+      box-shadow: 0 20px 45px rgba(209, 180, 149, 0.22);
+    }
+
+    .api-panel h2 {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .api-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .api-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .api-form label {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .api-form textarea {
+      border-radius: 12px;
+      border: 1px solid rgba(209, 180, 149, 0.5);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.65rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.9rem;
+      min-height: 90px;
+      color: var(--text);
+      resize: vertical;
+    }
+
+    .api-form-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .api-panel .api-form-actions + .api-form-actions {
+      margin-top: 1rem;
+      justify-content: flex-start;
+    }
+
+    .api-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .api-status--error {
+      color: #b45309;
+    }
+
     .weekday-row,
     .days-grid {
       display: grid;
@@ -348,6 +418,18 @@
     .save-button {
       background: var(--accent);
       color: #030712;
+      box-shadow: 0 10px 25px rgba(244, 162, 97, 0.25);
+    }
+
+    .api-panel .save-button {
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.45), rgba(240, 200, 150, 0.4));
+      border: 1px solid rgba(244, 162, 97, 0.5);
+      color: #1b1207;
+    }
+
+    .api-panel .save-button:hover {
+      box-shadow: 0 12px 30px rgba(231, 111, 81, 0.35);
     }
 
     .cancel-button,
@@ -427,6 +509,32 @@
       </div>
       <div id="calendar-days" class="days-grid"></div>
     </div>
+
+    <section class="api-panel">
+      <h2>Calendar API</h2>
+      <div class="api-grid">
+        <form id="api-add-form" class="api-form">
+          <label for="api-add-input">Add / update events (JSON array)</label>
+          <textarea id="api-add-input" placeholder='[{"id":7,"label":"New Event","date":"2026-03-30","href":"https://example.com"}]'></textarea>
+          <div class="api-form-actions">
+            <button type="submit" class="save-button">Push events</button>
+            <span id="api-add-status" class="api-status"></span>
+          </div>
+        </form>
+        <form id="api-remove-form" class="api-form">
+          <label for="api-remove-input">Remove events (JSON ids)</label>
+          <textarea id="api-remove-input" placeholder='[{"id":2},{"id":7}]'></textarea>
+          <div class="api-form-actions">
+            <button type="submit" class="save-button">Remove events</button>
+            <span id="api-remove-status" class="api-status"></span>
+          </div>
+        </form>
+      </div>
+      <div class="api-form-actions">
+        <button type="button" id="api-log-events" class="save-button">Log current events</button>
+        <span id="api-log-status" class="api-status">Console output only</span>
+      </div>
+    </section>
   </div>
 
   <div id="day-panel" class="overlay hidden" aria-hidden="true">
@@ -873,6 +981,57 @@
         }
       }
 
+      function attachApiPanelHandlers() {
+        const addForm = document.getElementById('api-add-form');
+        const removeForm = document.getElementById('api-remove-form');
+        const logButton = document.getElementById('api-log-events');
+        const addStatus = document.getElementById('api-add-status');
+        const removeStatus = document.getElementById('api-remove-status');
+        const logStatus = document.getElementById('api-log-status');
+
+        const updateStatus = (el, text = '', isError = false) => {
+          el.textContent = text;
+          el.classList.toggle('api-status--error', isError);
+        };
+
+        addForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          try {
+            const payload = JSON.parse(document.getElementById('api-add-input').value || '[]');
+            if (!Array.isArray(payload)) {
+              throw new Error('Expected an array of event objects');
+            }
+            publicAPI.addEvents(payload).then((result) => {
+              updateStatus(addStatus, `Added ${result.added.length}, skipped ${result.skipped.length}`);
+            });
+          } catch (error) {
+            updateStatus(addStatus, `JSON error: ${error.message}`, true);
+          }
+        });
+
+        removeForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          try {
+            const payload = JSON.parse(document.getElementById('api-remove-input').value || '[]');
+            if (!Array.isArray(payload)) {
+              throw new Error('Expected an array of {id} objects');
+            }
+            publicAPI.removeEvents(payload).then((result) => {
+              updateStatus(removeStatus, `Removed ${result.removed.length}, missing ${result.missing.length}`);
+            });
+          } catch (error) {
+            updateStatus(removeStatus, `JSON error: ${error.message}`, true);
+          }
+        });
+
+        logButton.addEventListener('click', () => {
+          publicAPI.logEvents().then(() => {
+            updateStatus(logStatus, 'Events logged to console');
+            setTimeout(() => updateStatus(logStatus, 'Console output only'), 2000);
+          });
+        });
+      }
+
       function openDayPanel(dateISO) {
         state.panelDate = dateISO;
         renderDayPanel();
@@ -939,6 +1098,15 @@
         return Promise.resolve([...eventsById.values()]);
       }
 
+      function logEvents() {
+        return getEvents().then((events) => {
+          console.group('Calendar events');
+          console.log(events);
+          console.groupEnd();
+          return events;
+        });
+      }
+
       function init(initialEvents = []) {
         cacheElements();
         populateSelects();
@@ -960,7 +1128,8 @@
         addEvents,
         removeEvents,
         setMonthYear,
-        getEvents
+        getEvents,
+        logEvents
       };
 
       const initialEvents = [
@@ -972,7 +1141,9 @@
 
       document.addEventListener('DOMContentLoaded', () => {
         publicAPI.init(initialEvents);
+        attachApiPanelHandlers();
         window.CalendarApp = publicAPI;
+        window.CalendarAPI = publicAPI;
       });
     })();
   </script>

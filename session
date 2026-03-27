@@ -22,6 +22,18 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
   - Adjusted the .calendar-shell container and overlay styles so the grid, modal, and panels now sit on creamy cards instead of the prior dark shell, matching the new theme across the entire
     experience. calendar.html#L35
 
-  Tests were not run (visual only). Please open calendar.html in a browser to confirm the new warm theme looks right on your client’s hardware.
 Token usage: total=379,748 input=356,025 (+ 325,760 cached) output=23,723 (reasoning 11,072)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+─ Worked for 1m 22s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added an “API panel” at the base of the calendar shell with two JSON textareas (one for adding/updating events, one for deleting by ID) plus a log button, so editors can paste arrays and
+    push them through the calendar without touching the console directly; everything sits at the bottom of calendar.html under the grid (calendar.html#L502).
+  - Wired the new controls via attachApiPanelHandlers, which parses the pasted JSON, calls CalendarApp.addEvents/removeEvents, and pops status messages, and introduced a logEvents helper pl
+    us window.CalendarAPI so the “Log current events” button and console debugging rely on the public API (calendar.html#L973, calendar.html#L1090-L1135).
+
+
+• - Updated the API panel buttons so their gradient, border radius, and hover feel now match the “Today” pill at the top — they now carry the same warm linear gradient, rounded corners, and
+    soft drop shadow while keeping the existing save-button class for consistency (calendar.html#L418-L424, new additions around calendar.html#L177-L187).
+Token usage: total=781,216 input=746,293 (+ 1,293,568 cached) output=34,923 (reasoning 18,496)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
