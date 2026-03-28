@@ -280,6 +280,14 @@
       transition: border 0.2s ease, box-shadow 0.2s ease;
     }
 
+    .day-cell.adjacent-month {
+      opacity: 0.6;
+    }
+
+    .day-cell.adjacent-month .day-number {
+      color: var(--muted);
+    }
+
     .day-cell:hover {
       border: 1px solid rgba(231, 111, 81, 0.45);
       box-shadow: 0 10px 30px rgba(231, 111, 81, 0.15);
@@ -687,6 +695,13 @@
           const year = date.getFullYear();
           return `${year}-${helpers.pad(date.getMonth() + 1)}-${helpers.pad(date.getDate())}`;
         },
+        parseISO: (iso) => {
+          if (!iso || typeof iso !== 'string') {
+            return new Date(iso);
+          }
+          const [year, month, day] = iso.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        },
         sameDay: (a,b) => a === b
       };
 
@@ -998,7 +1013,7 @@
         if (!state.panelDate) {
           return;
         }
-        const formatted = new Date(state.panelDate);
+        const formatted = helpers.parseISO(state.panelDate);
         if (!isFinite(formatted)) {
           elements.panelDate.textContent = state.panelDate;
         } else {
@@ -1058,67 +1073,66 @@
 
         const fragment = document.createDocumentFragment();
         const totalSlots = 42; // 6 weeks to cover month
+        const gridStart = new Date(state.year, state.month, 1);
+        gridStart.setDate(gridStart.getDate() - startDay);
         for (let i = 0; i < totalSlots; i++) {
           const cell = document.createElement('div');
           cell.className = 'day-cell';
           const dayNumber = document.createElement('div');
           dayNumber.className = 'day-number';
-          const cellIndex = i - startDay + 1;
-          if (i >= startDay && cellIndex <= daysInMonth) {
-            dayNumber.textContent = cellIndex;
-            const cellDate = new Date(state.year, state.month, cellIndex);
-            const isoDate = helpers.formatISO(cellDate);
-            cell.dataset.date = isoDate;
-            const today = helpers.formatISO(new Date());
-            if (helpers.sameDay(isoDate, today)) {
-              cell.classList.add('today');
-            }
-            if (state.selectedDate && helpers.sameDay(isoDate, state.selectedDate)) {
-              cell.classList.add('selected');
-            }
-            cell.addEventListener('click', () => {
-              state.selectedDate = isoDate;
-              state.panelDate = isoDate;
-              render();
-              openDayPanel(isoDate);
+          const cellDate = new Date(gridStart);
+          cellDate.setDate(gridStart.getDate() + i);
+          const isoDate = helpers.formatISO(cellDate);
+          const isCurrentMonth = cellDate.getMonth() === state.month;
+          cell.dataset.date = isoDate;
+          dayNumber.textContent = cellDate.getDate();
+          if (!isCurrentMonth) {
+            cell.classList.add('adjacent-month');
+          }
+          const today = helpers.formatISO(new Date());
+          if (helpers.sameDay(isoDate, today)) {
+            cell.classList.add('today');
+          }
+          if (state.selectedDate && helpers.sameDay(isoDate, state.selectedDate)) {
+            cell.classList.add('selected');
+          }
+          cell.addEventListener('click', () => {
+            state.selectedDate = isoDate;
+            state.panelDate = isoDate;
+            render();
+            openDayPanel(isoDate);
+          });
+          const events = getEventsForDate(isoDate);
+          if (events.length) {
+            const badges = document.createElement('div');
+            badges.className = 'event-badges';
+            events.slice(0, 3).forEach((eventItem) => {
+              const badge = document.createElement('div');
+              badge.className = 'event-badge';
+              badge.textContent = eventItem.label;
+              badges.appendChild(badge);
             });
-
-            const events = getEventsForDate(isoDate);
-            if (events.length) {
-              const badges = document.createElement('div');
-              badges.className = 'event-badges';
-              events.slice(0, 3).forEach((eventItem) => {
-                const badge = document.createElement('div');
-                badge.className = 'event-badge';
-                badge.textContent = eventItem.label;
-                badges.appendChild(badge);
+            if (events.length > 3) {
+              const more = document.createElement('button');
+              more.type = 'button';
+              more.className = 'more-link';
+              more.textContent = `+${events.length - 3} more`;
+              more.addEventListener('click', (evt) => {
+                evt.stopPropagation();
+                state.selectedDate = isoDate;
+                state.panelDate = isoDate;
+                openDayPanel(isoDate);
               });
-              if (events.length > 3) {
-                const more = document.createElement('button');
-                more.type = 'button';
-                more.className = 'more-link';
-                more.textContent = `+${events.length - 3} more`;
-                more.addEventListener('click', (evt) => {
-                  evt.stopPropagation();
-                  state.selectedDate = isoDate;
-                  state.panelDate = isoDate;
-                  openDayPanel(isoDate);
-                });
-                badges.appendChild(more);
-              }
-              cell.appendChild(badges);
+              badges.appendChild(more);
             }
-
-            const isoMonthDay = `${helpers.pad(cellDate.getMonth() + 1)}-${helpers.pad(cellDate.getDate())}`;
-            if (state.showHolidays && US_HOLIDAYS[isoMonthDay]) {
-              const holiday = document.createElement('span');
-              holiday.className = 'holiday-label';
-              holiday.textContent = US_HOLIDAYS[isoMonthDay];
-              cell.appendChild(holiday);
-            }
-          } else {
-            cell.classList.add('empty');
-            dayNumber.textContent = '';
+            cell.appendChild(badges);
+          }
+          const isoMonthDay = `${helpers.pad(cellDate.getMonth() + 1)}-${helpers.pad(cellDate.getDate())}`;
+          if (state.showHolidays && US_HOLIDAYS[isoMonthDay]) {
+            const holiday = document.createElement('span');
+            holiday.className = 'holiday-label';
+            holiday.textContent = US_HOLIDAYS[isoMonthDay];
+            cell.appendChild(holiday);
           }
           cell.appendChild(dayNumber);
           fragment.appendChild(cell);
