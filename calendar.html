@@ -792,6 +792,11 @@
             hidePanel();
           }
         });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && elements.dayPanel && !elements.dayPanel.classList.contains('hidden')) {
+            hidePanel();
+          }
+        });
 
         elements.editForm.addEventListener('submit', (event) => {
           event.preventDefault();
