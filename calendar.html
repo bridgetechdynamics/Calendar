@@ -1044,12 +1044,15 @@
           label.textContent = eventItem.label;
           const details = document.createElement('div');
           details.className = 'event-actions';
-          const link = document.createElement('a');
-          link.href = eventItem.href || '#';
-          link.textContent = eventItem.href ? 'Open link' : 'No link';
-          link.target = '_blank';
-          link.rel = 'noreferrer';
-          link.addEventListener('click', (event) => event.stopPropagation());
+          if (eventItem.href) {
+            const link = document.createElement('a');
+            link.href = eventItem.href;
+            link.textContent = 'Open link';
+            link.target = '_blank';
+            link.rel = 'noreferrer';
+            link.addEventListener('click', (event) => event.stopPropagation());
+            details.appendChild(link);
+          }
           const deleteBtn = document.createElement('button');
           deleteBtn.innerHTML = '×';
           deleteBtn.title = 'Delete event';
@@ -1057,7 +1060,7 @@
             event.stopPropagation();
             showConfirmPanel(eventItem.id);
           });
-          details.append(link, deleteBtn);
+          details.appendChild(deleteBtn);
           item.append(label, details);
           item.addEventListener('click', () => {
             showEditPanel(eventItem.id);
