@@ -83,3 +83,14 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
   Tests not run (UI only).
 Token usage: total=1,668,265 input=1,606,214 (+ 8,692,224 cached) output=62,051 (reasoning 34,880)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+─ Worked for 3m 50s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added the Add Event button plus new modal and header styling so the day panel always shows an “Add Event” control, a title that sits beside the button, and a dedicated form that mirrors
+    the Edit panel but starts with an auto-generated, non-editable ID and selected-date defaults (calendar.html:450, calendar.html:632, calendar.html:664).
+  - Introduced UI-only ID tracking plus the Add panel wiring—extended the state with pendingAddEventId, track the highest-ID seen, hook the Add button/form/cancel events, and auto-increment
+    when saving (leaving the API path untouched); the helper and handler logic live around calendar.html:717 and the submission routine sits at calendar.html:989.
+  - No automated tests were run (not requested); please open the calendar, pick a date, trigger “Add Event,” and save a new event to confirm the ID, label/link fields, and the refreshed
+    list.
+Token usage: total=3,749,977 input=3,615,643 (+ 15,288,832 cached) output=134,334 (reasoning 88,448)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080

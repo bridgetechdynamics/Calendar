@@ -447,6 +447,15 @@
       margin-top: 1rem;
     }
 
+    .panel-display__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
     .panel-section.hidden {
       display: none;
     }
@@ -620,7 +629,12 @@
     <div class="panel">
       <button class="close-panel" type="button" aria-label="Close panel">&times;</button>
       <div id="panel-display" class="panel-section">
-        <h3>Events for <span id="panel-date"></span></h3>
+        <div class="panel-display__header">
+          <h3>Events for <span id="panel-date"></span></h3>
+          <div class="hero-actions">
+            <button type="button" class="save-button" id="add-event-button">Add Event</button>
+          </div>
+        </div>
         <div id="event-list"></div>
       </div>
 
@@ -642,6 +656,29 @@
           </div>
           <div class="hero-actions">
             <button type="button" class="cancel-button" id="cancel-edit">Cancel</button>
+            <button type="submit" class="save-button">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="panel-add" class="panel-section hidden">
+        <h3>Add Event</h3>
+        <p class="edit-id">Event ID: <span id="add-id-value"></span></p>
+        <form id="add-form">
+          <div>
+            <label for="add-label">Label</label>
+            <input id="add-label" name="label" required />
+          </div>
+          <div>
+            <label for="add-href">Link (optional)</label>
+            <input id="add-href" name="href" placeholder="https://" />
+          </div>
+          <div>
+            <label for="add-date">Date</label>
+            <input id="add-date" name="date" type="date" required />
+          </div>
+          <div class="hero-actions">
+            <button type="button" class="cancel-button" id="cancel-add">Cancel</button>
             <button type="submit" class="save-button">Save</button>
           </div>
         </form>
@@ -683,11 +720,14 @@
         selectedDate: null,
         panelDate: null,
         editingEventId: null,
+        pendingAddEventId: null,
         showHolidays: true
       };
 
       const elements = {};
       let eventsById = new Map();
+      // Track the highest ID we have ever assigned so UI additions can keep incrementing.
+      let highestEventId = 0;
 
       const helpers = {
         pad: (value) => value.toString().padStart(2, '0'),
@@ -704,6 +744,12 @@
         },
         sameDay: (a,b) => a === b
       };
+
+      function updateHighestId(idValue) {
+        if (typeof idValue === 'number' && Number.isFinite(idValue)) {
+          highestEventId = Math.max(highestEventId, idValue);
+        }
+      }
 
       function cacheElements() {
         elements.monthSelect = document.getElementById('month-select');
@@ -724,6 +770,14 @@
         elements.editIdValue = document.getElementById('edit-id-value');
         elements.closePanel = document.querySelector('.close-panel');
         elements.holidayToggle = document.getElementById('holiday-toggle');
+        elements.addButton = document.getElementById('add-event-button');
+        elements.panelAdd = document.getElementById('panel-add');
+        elements.addForm = document.getElementById('add-form');
+        elements.addLabel = document.getElementById('add-label');
+        elements.addHref = document.getElementById('add-href');
+        elements.addDate = document.getElementById('add-date');
+        elements.addIdValue = document.getElementById('add-id-value');
+        elements.cancelAdd = document.getElementById('cancel-add');
       }
 
       function populateSelects() {
@@ -798,6 +852,16 @@
           }
         });
 
+        if (elements.addButton) {
+          elements.addButton.addEventListener('click', () => openAddPanel());
+        }
+        if (elements.addForm) {
+          elements.addForm.addEventListener('submit', handleAddFormSubmit);
+        }
+        if (elements.cancelAdd) {
+          elements.cancelAdd.addEventListener('click', () => hideAddPanel());
+        }
+
         elements.editForm.addEventListener('submit', (event) => {
           event.preventDefault();
           const eventId = state.editingEventId;
@@ -851,6 +915,7 @@
         elements.panelDisplay.classList.add('hidden');
         elements.panelEdit.classList.add('hidden');
         elements.panelConfirm.classList.add('hidden');
+        setAddSectionVisibility(false);
       }
 
       function showDisplayPanel() {
@@ -883,6 +948,74 @@
         if (elements.panelConfirm) {
           elements.panelConfirm.classList.toggle('hidden', !enabled);
         }
+      }
+
+      function setAddSectionVisibility(enabled) {
+        if (elements.panelAdd) {
+          elements.panelAdd.classList.toggle('hidden', !enabled);
+        }
+      }
+
+      function hideAddPanel() {
+        state.pendingAddEventId = null;
+        setAddSectionVisibility(false);
+        showDisplayPanel();
+      }
+
+      function openAddPanel() {
+        if (!elements.panelAdd) {
+          return;
+        }
+        const baseDate = state.panelDate || state.selectedDate || helpers.formatISO(new Date());
+        const nextId = highestEventId + 1;
+        state.pendingAddEventId = nextId;
+        if (elements.addIdValue) {
+          elements.addIdValue.textContent = nextId;
+        }
+        if (elements.addLabel) {
+          elements.addLabel.value = '';
+        }
+        if (elements.addHref) {
+          elements.addHref.value = '';
+        }
+        if (elements.addDate) {
+          elements.addDate.value = baseDate;
+        }
+        hideAllPanels();
+        setAddSectionVisibility(true);
+        elements.panelAdd.classList.remove('hidden');
+      }
+
+      function handleAddFormSubmit(event) {
+        event.preventDefault();
+        if (!elements.addLabel || !elements.addDate) {
+          return;
+        }
+        const label = elements.addLabel.value.trim();
+        const dateValue = elements.addDate.value;
+        if (!label || !dateValue) {
+          return;
+        }
+        const href = elements.addHref ? elements.addHref.value.trim() : '';
+        const proposedId = Math.max(highestEventId, state.pendingAddEventId || 0) + 1;
+        state.pendingAddEventId = proposedId;
+        if (elements.addIdValue) {
+          elements.addIdValue.textContent = proposedId;
+        }
+        const newEvent = { id: proposedId, label, date: dateValue };
+        if (href) {
+          newEvent.href = href;
+        }
+        eventsById.set(proposedId, newEvent);
+        updateHighestId(proposedId);
+        persistEvents();
+        state.selectedDate = dateValue;
+        state.panelDate = dateValue;
+        state.pendingAddEventId = null;
+        render();
+        renderDayPanel();
+        hideAllPanels();
+        showDisplayPanel();
       }
 
       function prepareDefaultEdit() {
@@ -943,6 +1076,7 @@
         elements.dayPanel.classList.add('hidden');
         elements.dayPanel.setAttribute('aria-hidden', 'true');
         state.panelDate = null;
+        state.pendingAddEventId = null;
         hideAllPanels();
         showDisplayPanel();
         setEditSectionVisibility(false);
@@ -1006,6 +1140,7 @@
         stored.forEach((event) => {
           if (event && event.id && event.label && event.date) {
             eventsById.set(event.id, { ...event });
+            updateHighestId(event.id);
           }
         });
       }
@@ -1230,6 +1365,7 @@
             href: eventItem.href,
             date: eventItem.date
           });
+          updateHighestId(eventItem.id);
           added.push(eventItem.id);
         });
         if (added.length && !skipPersist) {
