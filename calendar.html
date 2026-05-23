@@ -1447,13 +1447,16 @@
         window.CalendarAPI = publicAPI;
       }
 
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = helpers.pad(now.getMonth() + 1);
       const initialEvents = [
-        { id: 1, label: 'Design review', href: 'https://example.com/client-review', date: '2026-03-18' },
-        { id: 2, label: 'Team sync', date: '2026-03-18' },
-        { id: 3, label: 'Client demo', href: 'https://example.com/demo', date: '2026-03-22' },
-        { id: 4, label: 'Launch prep', date: '2026-03-27' },
-        { id: 5, label: 'Client demo', href: 'https://example.com/demo', date: '2026-03-27' },
-        { id: 6, label: 'Team sync', date: '2026-03-27' }
+        { id: 1, label: 'Design review', href: 'https://example.com/client-review', date: `${currentYear}-${currentMonth}-18` },
+        { id: 2, label: 'Team sync', date: `${currentYear}-${currentMonth}-18` },
+        { id: 3, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-22` },
+        { id: 4, label: 'Launch prep', date: `${currentYear}-${currentMonth}-27` },
+        { id: 5, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-27` },
+        { id: 6, label: 'Team sync', date: `${currentYear}-${currentMonth}-27` }
       ];
 
       document.addEventListener('DOMContentLoaded', () => {

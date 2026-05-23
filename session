@@ -94,3 +94,22 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
     list.
 Token usage: total=3,749,977 input=3,615,643 (+ 15,288,832 cached) output=134,334 (reasoning 88,448)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+• - Replaced the README with a comprehensive guide that describes the calendar, documents every public method, and explains the auto-increment workflow (see the new overview at readme.md:1
+  and the Public JavaScript API section starting at readme.md:18).
+  - Added use-case snippets plus Python, Ruby, and PHP integration examples to show how server-rendered templates or scripts can call CalendarApp/CalendarAPI once the page loads
+  (readme.md:60).
+
+  No automated tests were run (docs-only change). Next steps: review the README to ensure the language matches your audience, then update any server templates with the provided snippets if
+  needed.
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Replaced the hard-coded March 2026 dates with a tiny helper that reads the current system year/month before defining initialEvents, so the seeded entries always land in the current month
+    (calendar.html:1450).
+  - The rest of the workflow stays untouched; the calendar still calls publicAPI.init(initialEvents) on DOMContentLoaded.
+
+  No automated tests were run (data-only change).
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Token usage: total=3,943,192 input=3,803,524 (+ 15,717,632 cached) output=139,668 (reasoning 90,880)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
