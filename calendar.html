@@ -1507,23 +1507,27 @@
         const added = [];
         const skipped = [];
         incoming.forEach((eventItem) => {
-          if (!eventItem || typeof eventItem.id === 'undefined' || typeof eventItem.label !== 'string' || !eventItem.date) {
-            skipped.push({ reason: 'invalid payload', payload: eventItem });
-            return;
-          }
-          if (eventsById.has(eventItem.id)) {
-            skipped.push({ reason: 'duplicate id', id: eventItem.id });
-            return;
-          }
-          eventsById.set(eventItem.id, {
-            id: eventItem.id,
-            label: eventItem.label,
-            href: eventItem.href,
-            date: eventItem.date
-          });
-          updateHighestId(eventItem.id);
-          added.push(eventItem.id);
-        });
+        if (!eventItem || typeof eventItem.id === 'undefined' || typeof eventItem.label !== 'string' || !eventItem.date) {
+          skipped.push({ reason: 'invalid payload', payload: eventItem });
+          return;
+        }
+        if (eventsById.has(eventItem.id)) {
+          skipped.push({ reason: 'duplicate id', id: eventItem.id });
+          return;
+        }
+        const record = {
+          id: eventItem.id,
+          label: eventItem.label,
+          href: eventItem.href,
+          date: eventItem.date
+        };
+        if (eventItem.tag) {
+          record.tag = eventItem.tag;
+        }
+        eventsById.set(eventItem.id, record);
+        updateHighestId(eventItem.id);
+        added.push(eventItem.id);
+      });
         if (added.length && !skipPersist) {
           persistEvents();
           render();

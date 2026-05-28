@@ -142,3 +142,16 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
 ─ Worked for 3m 38s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Token usage: total=6,891,243 input=6,689,536 (+ 24,448,384 cached) output=201,707 (reasoning 130,112)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Bug triage: addEvents() previously constructed event records with only id, label, href, and date, so even though the sample data passed a tag object the runtime dropped it before storing
+    the event. That’s why badges never picked up tag colors and the edit form had no tag selected after load.
+  - Fix: keep the tag object when we build the record that gets stashed in eventsById (and thus persisted). The new tag information now survives the initial load and any API-based additions,
+    restoring the filtering, badge borders, and edit form defaulting you expect.
+
+  Tests were not run (bug fix only).
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Token usage: total=6,914,931 input=6,712,363 (+ 24,674,304 cached) output=202,568 (reasoning 130,432)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
