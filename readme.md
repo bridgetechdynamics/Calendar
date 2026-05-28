@@ -77,6 +77,13 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
 - **Parameters:** none.
 - **Returns:** resolves with the same array that gets logged.
 
+### `CalendarApp.clearEvents()`
+
+- **Purpose:** remove every event from the calendar and wipe the backing `localStorage` key so the component returns to a clean slate.
+- **Parameters:** none.
+- **Returns:** resolves once the storage has been cleared.
+- **Tip:** use the “Clear stored events” button in the API panel if you want to expose this action to clients without calling `clearEvents()` manually.
+
 ## UI automation notes
 
 - The “Add Event” button opens a modal that mirrors the Edit flow but auto-generates the next ID (based on the highest ID every event has ever used) so the interface never asks the user to pick one manually.
@@ -163,4 +170,3 @@ If you need to drive the calendar entirely from a backend script (for example, d
 - Keep the IDs unique when calling `addEvents` via the API; the UI incrementer only applies to the gated “Add Event” modal.
 - Use `CalendarApp.setMonthYear` when you want to show a different month in response to filters or navigation outside the calendar component.
 - Persist your own server-side cache if you need long-term storage—this calendar keeps things only in `localStorage`.
-

@@ -113,3 +113,17 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Token usage: total=3,943,192 input=3,803,524 (+ 15,717,632 cached) output=139,668 (reasoning 90,880)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added the “Clear stored events” button to the API panel (right beside the log button) plus a status indicator so users can explicitly clear the calendar’s localStorage footprint without
+    diving into the console (calendar.html:n/a near the API panel).
+  - Implemented the new clearEvents() API, which wipes eventsById, resets UI state, deletes the storage key, rerenders the view, and can now be triggered from both JavaScript and the new
+    button handler (calendar.html near clearEvents and the appended handler in attachApiPanelHandlers).
+  - Documented the new method in README.md, highlighting that it clears storage and mentioning the matching button in the panel.
+
+  Tests were not run (not requested).
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Token usage: total=6,099,071 input=5,917,230 (+ 19,895,680 cached) output=181,841 (reasoning 118,080)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080

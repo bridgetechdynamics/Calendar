@@ -620,7 +620,9 @@
       </div>
       <div class="api-form-actions">
         <button type="button" id="api-log-events" class="save-button">Log current events</button>
+        <button type="button" id="api-clear-events" class="cancel-button">Clear stored events</button>
         <span id="api-log-status" class="api-status">Console output only</span>
+        <span id="api-clear-status" class="api-status"></span>
       </div>
     </section>
   </div>
@@ -1291,9 +1293,11 @@
         const addForm = document.getElementById('api-add-form');
         const removeForm = document.getElementById('api-remove-form');
         const logButton = document.getElementById('api-log-events');
+        const clearButton = document.getElementById('api-clear-events');
         const addStatus = document.getElementById('api-add-status');
         const removeStatus = document.getElementById('api-remove-status');
         const logStatus = document.getElementById('api-log-status');
+        const clearStatus = document.getElementById('api-clear-status');
 
         const updateStatus = (el, text = '', isError = false) => {
           el.textContent = text;
@@ -1336,6 +1340,15 @@
             setTimeout(() => updateStatus(logStatus, 'Console output only'), 2000);
           });
         });
+
+        if (clearButton) {
+          clearButton.addEventListener('click', () => {
+            publicAPI.clearEvents().then(() => {
+              updateStatus(clearStatus, 'Storage cleared');
+              setTimeout(() => updateStatus(clearStatus, ''), 2000);
+            });
+          });
+        }
       }
 
       function openDayPanel(dateISO) {
@@ -1393,6 +1406,22 @@
         return Promise.resolve({ success: true, removed, missing });
       }
 
+      function clearEvents() {
+        eventsById.clear();
+        highestEventId = 0;
+        state.selectedDate = helpers.formatISO(new Date());
+        state.panelDate = null;
+        state.editingEventId = null;
+        state.pendingAddEventId = null;
+        if (window.localStorage) {
+          window.localStorage.removeItem(storageKey);
+        }
+        hideAllPanels();
+        showDisplayPanel();
+        render();
+        return Promise.resolve({ success: true });
+      }
+
       function setMonthYear(month, year) {
         const limitedMonth = Math.max(0, Math.min(11, month));
         const limitedYear = Number.isFinite(year ? Number(year) : year) ? Number(year) : state.year;
@@ -1439,7 +1468,8 @@
         removeEvents,
         setMonthYear,
         getEvents,
-        logEvents
+        logEvents,
+        clearEvents
       };
 
       if (typeof window !== 'undefined') {
