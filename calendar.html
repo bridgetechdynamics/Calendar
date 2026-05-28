@@ -447,6 +447,38 @@
       margin-top: 1rem;
     }
 
+    .tag-display {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .tag-filter__bubble {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tag-filter__bubble.active {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(231, 111, 81, 0.25);
+      border-color: currentColor;
+    }
+
+    .tag-select {
+      display: none;
+    }
+
+    .tag-select:not(.hidden) {
+      display: block;
+    }
+
     .panel-display__header {
       display: flex;
       align-items: center;
@@ -583,6 +615,7 @@
           </label>
         </div>
       </div>
+      <div id="tag-filter-row" class="tag-display hidden" aria-live="polite"></div>
     </header>
 
     <div class="calendar-grid">
@@ -652,6 +685,12 @@
             <label for="edit-href">Link (optional)</label>
             <input id="edit-href" name="href" placeholder="https://" />
           </div>
+          <div class="tag-select hidden" data-role="tag-select">
+            <label for="edit-tag">Tag</label>
+            <select id="edit-tag">
+              <option value="">None</option>
+            </select>
+          </div>
           <div>
             <label for="edit-date">Date</label>
             <input id="edit-date" name="date" type="date" required />
@@ -674,6 +713,12 @@
           <div>
             <label for="add-href">Link (optional)</label>
             <input id="add-href" name="href" placeholder="https://" />
+          </div>
+          <div class="tag-select hidden" data-role="tag-select">
+            <label for="add-tag">Tag</label>
+            <select id="add-tag">
+              <option value="">None</option>
+            </select>
           </div>
           <div>
             <label for="add-date">Date</label>
@@ -723,11 +768,14 @@
         panelDate: null,
         editingEventId: null,
         pendingAddEventId: null,
-        showHolidays: true
+        showHolidays: true,
+        tags: [],
+        activeTagKey: null
       };
 
       const elements = {};
       let eventsById = new Map();
+      let tagLookup = new Map();
       // Track the highest ID we have ever assigned so UI additions can keep incrementing.
       let highestEventId = 0;
 
@@ -753,6 +801,81 @@
         }
       }
 
+      function setTagConfig(tags = []) {
+        state.tags = Array.isArray(tags) ? tags : [];
+        tagLookup = new Map(state.tags.map((tag) => [tag.key, tag]));
+        state.activeTagKey = null;
+        toggleTagSelectVisibility(state.tags.length > 0);
+        renderTagFilter();
+        populateTagSelects();
+      }
+
+      function toggleTagSelectVisibility(show) {
+        elements.tagSelectGroups.forEach((container) => {
+          container.classList.toggle('hidden', !show);
+        });
+      }
+
+      function populateTagSelects() {
+        const selects = [elements.editTagSelect, elements.addTagSelect].filter(Boolean);
+        if (!state.tags.length) {
+          selects.forEach((select) => {
+            select.innerHTML = '<option value="">None</option>';
+          });
+          return;
+        }
+        const options = ['<option value="">None</option>', ...state.tags.map((tag) => `<option value="${tag.key}">${tag.label}</option>`)];
+        selects.forEach((select) => {
+          select.innerHTML = options.join('');
+        });
+      }
+
+      function renderTagFilter() {
+        if (!elements.tagFilterRow) {
+          return;
+        }
+        elements.tagFilterRow.innerHTML = '';
+        if (!state.tags.length) {
+          elements.tagFilterRow.classList.add('hidden');
+          return;
+        }
+        elements.tagFilterRow.classList.remove('hidden');
+        state.tags.forEach((tag) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'tag-filter__bubble';
+          button.textContent = tag.label;
+          button.dataset.tagKey = tag.key;
+          button.style.color = tag.color || 'currentColor';
+          button.style.borderColor = tag.color || 'rgba(148, 163, 184, 0.5)';
+          if (state.activeTagKey === tag.key) {
+            button.classList.add('active');
+          }
+          button.addEventListener('click', () => {
+            state.activeTagKey = state.activeTagKey === tag.key ? null : tag.key;
+            render();
+            renderDayPanel();
+            renderTagFilter();
+          });
+          elements.tagFilterRow.appendChild(button);
+        });
+      }
+
+      function getTagByKey(key) {
+        if (!key || !tagLookup) {
+          return undefined;
+        }
+        const tag = tagLookup.get(key);
+        return tag ? { ...tag } : undefined;
+      }
+
+      function applyTagFilter(events) {
+        if (!state.activeTagKey) {
+          return events;
+        }
+        return events.filter((event) => event.tag && event.tag.key === state.activeTagKey);
+      }
+
       function cacheElements() {
         elements.monthSelect = document.getElementById('month-select');
         elements.yearSelect = document.getElementById('year-select');
@@ -772,6 +895,10 @@
         elements.editIdValue = document.getElementById('edit-id-value');
         elements.closePanel = document.querySelector('.close-panel');
         elements.holidayToggle = document.getElementById('holiday-toggle');
+        elements.tagFilterRow = document.getElementById('tag-filter-row');
+        elements.editTagSelect = document.getElementById('edit-tag');
+        elements.addTagSelect = document.getElementById('add-tag');
+        elements.tagSelectGroups = document.querySelectorAll('[data-role="tag-select"]');
         elements.addButton = document.getElementById('add-event-button');
         elements.panelAdd = document.getElementById('panel-add');
         elements.addForm = document.getElementById('add-form');
@@ -876,10 +1003,13 @@
             showDisplayPanel();
             return;
           }
-          existingEvent.label = elements.editLabel.value.trim();
-          existingEvent.href = elements.editHref.value.trim() || undefined;
-          existingEvent.date = elements.editDate.value;
-          eventsById.set(eventId, existingEvent);
+        existingEvent.label = elements.editLabel.value.trim();
+        existingEvent.href = elements.editHref.value.trim() || undefined;
+        existingEvent.date = elements.editDate.value;
+        if (elements.editTagSelect) {
+          existingEvent.tag = getTagByKey(elements.editTagSelect.value);
+        }
+        eventsById.set(eventId, existingEvent);
           persistEvents();
           if (state.panelDate !== existingEvent.date) {
             state.panelDate = existingEvent.date;
@@ -930,6 +1060,9 @@
         if (elements.editHref) elements.editHref.value = '';
         if (elements.editDate) elements.editDate.value = '';
         if (elements.editIdValue) elements.editIdValue.textContent = '';
+        if (elements.editTagSelect) {
+          elements.editTagSelect.value = '';
+        }
       }
 
       function populateEditFields(eventData) {
@@ -941,6 +1074,9 @@
         if (elements.editHref) elements.editHref.value = eventData.href || '';
         if (elements.editDate) elements.editDate.value = eventData.date || '';
         if (elements.editIdValue) elements.editIdValue.textContent = eventData.id;
+        if (elements.editTagSelect) {
+          elements.editTagSelect.value = eventData.tag ? eventData.tag.key : '';
+        }
       }
 
       function setEditSectionVisibility(enabled) {
@@ -1005,6 +1141,10 @@
           elements.addIdValue.textContent = proposedId;
         }
         const newEvent = { id: proposedId, label, date: dateValue };
+        const selectedTag = elements.addTagSelect ? getTagByKey(elements.addTagSelect.value) : undefined;
+        if (selectedTag) {
+          newEvent.tag = selectedTag;
+        }
         if (href) {
           newEvent.href = href;
         }
@@ -1021,7 +1161,7 @@
       }
 
       function prepareDefaultEdit() {
-        const dayEvents = getEventsForDate(state.panelDate);
+        const dayEvents = applyTagFilter(getEventsForDate(state.panelDate));
         if (dayEvents.length) {
           const eventData = dayEvents[0];
           state.editingEventId = eventData.id;
@@ -1035,7 +1175,7 @@
       }
 
       function showEditPanel(eventId) {
-        const dayEvents = getEventsForDate(state.panelDate);
+        const dayEvents = applyTagFilter(getEventsForDate(state.panelDate));
         const targetId = (typeof eventId !== 'undefined' && eventId !== null)
           ? eventId
           : (dayEvents.length ? dayEvents[0].id : null);
@@ -1166,7 +1306,7 @@
             year: 'numeric'
           });
         }
-        const events = getEventsForDate(state.panelDate);
+        const events = applyTagFilter(getEventsForDate(state.panelDate));
         elements.eventList.innerHTML = '';
         if (!events.length) {
           elements.eventList.innerHTML = '<p class="empty-text">No events scheduled.</p>';
@@ -1248,20 +1388,23 @@
             openDayPanel(isoDate);
           });
           const events = getEventsForDate(isoDate);
-          if (events.length) {
+          const visibleEvents = applyTagFilter(events);
+          if (visibleEvents.length) {
             const badges = document.createElement('div');
             badges.className = 'event-badges';
-            events.slice(0, 3).forEach((eventItem) => {
+            visibleEvents.slice(0, 3).forEach((eventItem) => {
               const badge = document.createElement('div');
               badge.className = 'event-badge';
               badge.textContent = eventItem.label;
+              const borderColor = eventItem.tag && eventItem.tag.color ? eventItem.tag.color : 'rgba(231, 111, 81, 0.4)';
+              badge.style.borderColor = borderColor;
               badges.appendChild(badge);
             });
-            if (events.length > 3) {
+            if (visibleEvents.length > 3) {
               const more = document.createElement('button');
               more.type = 'button';
               more.className = 'more-link';
-              more.textContent = `+${events.length - 3} more`;
+              more.textContent = `+${visibleEvents.length - 3} more`;
               more.addEventListener('click', (evt) => {
                 evt.stopPropagation();
                 state.selectedDate = isoDate;
@@ -1413,6 +1556,7 @@
         state.panelDate = null;
         state.editingEventId = null;
         state.pendingAddEventId = null;
+        state.activeTagKey = null;
         if (window.localStorage) {
           window.localStorage.removeItem(storageKey);
         }
@@ -1446,11 +1590,12 @@
       }
 
       // this is where intialEvents are made persistant
-      function init(initialEvents = []) {
+      function init(initialEvents = [], initialTags = []) {
         cacheElements();
         populateSelects();
         attachControlHandlers();
         loadEvents();
+        setTagConfig(initialTags);
         state.selectedDate = helpers.formatISO(new Date());
         if (!eventsById.size && initialEvents.length) {
           addEvents(initialEvents, { skipPersist: true }).then(() => {
@@ -1480,17 +1625,23 @@
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = helpers.pad(now.getMonth() + 1);
+      const initialTags = [
+        { key: 'foo', label: 'Foo', color: 'red' },
+        { key: 'bar', label: 'Bar', color: 'green' },
+        { key: 'baz', label: 'Baz', color: 'blue' },
+        { key: 'qux', label: 'Qux', color: 'orange' }
+      ];
       const initialEvents = [
-        { id: 1, label: 'Design review', href: 'https://example.com/client-review', date: `${currentYear}-${currentMonth}-18` },
-        { id: 2, label: 'Team sync', date: `${currentYear}-${currentMonth}-18` },
-        { id: 3, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-22` },
-        { id: 4, label: 'Launch prep', date: `${currentYear}-${currentMonth}-27` },
-        { id: 5, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-27` },
-        { id: 6, label: 'Team sync', date: `${currentYear}-${currentMonth}-27` }
+        { id: 1, label: 'Design review', href: 'https://example.com/client-review', date: `${currentYear}-${currentMonth}-18`, tag: { key: 'foo', label: 'Foo', color: 'red' } },
+        { id: 2, label: 'Team sync', date: `${currentYear}-${currentMonth}-18`, tag: { key: 'bar', label: 'Bar', color: 'green' } },
+        { id: 3, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-22`, tag: { key: 'baz', label: 'Baz', color: 'blue' } },
+        { id: 4, label: 'Launch prep', date: `${currentYear}-${currentMonth}-27`, tag: { key: 'qux', label: 'Qux', color: 'orange' } },
+        { id: 5, label: 'Client demo', href: 'https://example.com/demo', date: `${currentYear}-${currentMonth}-27`, tag: { key: 'foo', label: 'Foo', color: 'red' } },
+        { id: 6, label: 'Team sync', date: `${currentYear}-${currentMonth}-27`, tag: { key: 'bar', label: 'Bar', color: 'green' } }
       ];
 
       document.addEventListener('DOMContentLoaded', () => {
-        publicAPI.init(initialEvents);
+        publicAPI.init(initialEvents, initialTags);
         attachApiPanelHandlers();
         window.CalendarApp = publicAPI;
         window.CalendarAPI = publicAPI;

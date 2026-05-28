@@ -127,3 +127,18 @@ To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
 ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 Token usage: total=6,099,071 input=5,917,230 (+ 19,895,680 cached) output=181,841 (reasoning 118,080)
 To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+• - Added optional tag support: there’s now a tag-filter bubble row under the controls plus tag drop-downs inside both the add/edit panels, and every event badge uses its tag’s color for the
+    border; the UI and rendering skip all of that logic unless a tag list is supplied so the calendar behaves as before when tags are absent (calendar.html:589, calendar.html:705,
+    calendar.html:880, calendar.html:1350).
+  - The init routine now accepts an optional tag configuration, we seed the calendar with the requested initialTags/tagged events, and filtering honours the selected tag by applying it to
+    every row/cell and the panel (calendar.html:1592, calendar.html:1625).
+  - Documented the new tags argument and filter behavior (plus the existing clear-storage action) in the README so integrators know how to enable the feature (readme.md:16, readme.md:91).
+
+  Tests were not run (not requested).
+
+─ Worked for 3m 38s ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Token usage: total=6,891,243 input=6,689,536 (+ 24,448,384 cached) output=201,707 (reasoning 130,112)
+To continue this session, run codex resume 019d3116-973d-73c0-bc0c-3fcc64fae080

@@ -13,10 +13,12 @@ This repository delivers a single-page, vanilla JavaScript calendar with a moder
 
 Each method returns a `Promise` whenever it performs persistence or asynchronous work. You can access the API via `window.CalendarApp` or the `CalendarAPI` alias; both references are bound as soon as the script executes so you never get `CalendarApp is not defined` even if you call it very early.
 
-### `CalendarApp.init(initialEvents)`
+### `CalendarApp.init(initialEvents, tags)`
 
-- **Purpose:** bootstrap the calendar data when the page loads.
-- **Parameters:** `initialEvents` — an array of the `{id,label,date,href?}` objects you want to pre-render.
+- **Purpose:** bootstrap the calendar data and, optionally, the available tags when the page loads.
+- **Parameters:**
+  - `initialEvents` — an array of the `{id,label,date,href?}` objects you want to pre-render.
+  - `tags` — optional array of `{key,label,color?}` objects; if provided the Add/Edit modals show a tag chooser and the new filter row appears under the controls.
 - **Returns:** resolves after the internal store is populated and the calendar is rendered.
 - **Example:**
   ```html
@@ -88,6 +90,7 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
 
 - The “Add Event” button opens a modal that mirrors the Edit flow but auto-generates the next ID (based on the highest ID every event has ever used) so the interface never asks the user to pick one manually.
 - When you save from the modal, the calendar persists the new event, closes the overlay, and re-selects the date so the list updates instantly.
+- If you pass a `tags` array into `init`, the Add/Edit modals show a drop-down and the calendar renders a row of tag bubbles beneath the header controls so you can filter the entire grid by a tag’s key; clicking a bubble toggles the filter and highlights the badge.
 
 ## Example workflows
 
