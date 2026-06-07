@@ -91,6 +91,7 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
 - The “Add Event” button opens a modal that mirrors the Edit flow but auto-generates the next ID (based on the highest ID every event has ever used) so the interface never asks the user to pick one manually.
 - When you save from the modal, the calendar persists the new event, closes the overlay, and re-selects the date so the list updates instantly.
 - If you pass a `tags` array into `init`, the Add/Edit modals show a drop-down and the calendar renders a row of tag bubbles beneath the header controls so you can filter the entire grid by a tag’s key; clicking a bubble toggles the filter and highlights the badge.
+- When you click an event badge in the day panel, a new “View Event” panel appears first; it provides read-only details plus Cancel (back to the list) and Edit buttons so you can decide whether to make changes.
 
 ## Example workflows
 

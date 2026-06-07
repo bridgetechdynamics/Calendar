@@ -447,6 +447,17 @@
       margin-top: 1rem;
     }
 
+    .view-field {
+      margin: 0.35rem 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .view-field .label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
     .tag-display {
       display: flex;
       gap: 0.5rem;
@@ -673,6 +684,19 @@
         <div id="event-list"></div>
       </div>
 
+      <div id="panel-view" class="panel-section hidden">
+        <h3>View Event</h3>
+        <p class="edit-id">Event ID: <span id="view-id-value"></span></p>
+        <p class="view-field"><span class="label">Label:</span> <span id="view-label"></span></p>
+        <p class="view-field"><span class="label">Date:</span> <span id="view-date"></span></p>
+        <p class="view-field view-link"><span class="label">Link:</span> <a id="view-link" target="_blank" rel="noreferrer"></a></p>
+        <p class="view-field" id="view-tag-line"><span class="label">Tag:</span> <span id="view-tag"></span></p>
+        <div class="hero-actions">
+          <button type="button" class="cancel-button" id="view-cancel">Cancel</button>
+          <button type="button" class="save-button" id="view-edit">Edit</button>
+        </div>
+      </div>
+
       <div id="panel-edit" class="panel-section hidden">
         <h3>Edit Event</h3>
         <p class="edit-id">Event ID: <span id="edit-id-value"></span></p>
@@ -767,6 +791,7 @@
         selectedDate: null,
         panelDate: null,
         editingEventId: null,
+        viewingEventId: null,
         pendingAddEventId: null,
         showHolidays: true,
         tags: [],
@@ -807,6 +832,54 @@
             input.readOnly = readonly;
           }
         });
+      }
+
+      function populateViewPanel(eventData) {
+        if (!eventData || !elements.panelView) {
+          return;
+        }
+        if (elements.viewIdValue) {
+          elements.viewIdValue.textContent = eventData.id;
+        }
+        if (elements.viewLabel) {
+          elements.viewLabel.textContent = eventData.label;
+        }
+        if (elements.viewDate) {
+          elements.viewDate.textContent = eventData.date;
+        }
+        if (elements.viewLink) {
+          if (eventData.href) {
+            elements.viewLink.href = eventData.href;
+            elements.viewLink.textContent = eventData.href;
+            elements.viewLink.parentElement?.classList.remove('hidden');
+          } else {
+            elements.viewLink.removeAttribute('href');
+            elements.viewLink.textContent = '';
+            elements.viewLink.parentElement?.classList.add('hidden');
+          }
+        }
+        if (elements.viewTag) {
+          if (eventData.tag) {
+            elements.viewTag.textContent = eventData.tag.label;
+            elements.viewTagLine?.classList.remove('hidden');
+          } else {
+            elements.viewTag.textContent = '';
+            elements.viewTagLine?.classList.add('hidden');
+          }
+        }
+      }
+
+      function showViewPanel(eventId) {
+        const eventData = eventsById.get(eventId);
+        if (!eventData) {
+          return;
+        }
+        state.viewingEventId = eventId;
+        populateViewPanel(eventData);
+        hideAllPanels();
+        if (elements.panelView) {
+          elements.panelView.classList.remove('hidden');
+        }
       }
 
       function setTagConfig(tags = []) {
@@ -894,6 +967,7 @@
         elements.panelDate = document.getElementById('panel-date');
         elements.eventList = document.getElementById('event-list');
         elements.panelDisplay = document.getElementById('panel-display');
+        elements.panelView = document.getElementById('panel-view');
         elements.panelEdit = document.getElementById('panel-edit');
         elements.panelConfirm = document.getElementById('panel-confirm');
         elements.editForm = document.getElementById('edit-form');
@@ -916,6 +990,14 @@
         elements.addDate = document.getElementById('add-date');
         elements.addIdValue = document.getElementById('add-id-value');
         elements.cancelAdd = document.getElementById('cancel-add');
+        elements.viewIdValue = document.getElementById('view-id-value');
+        elements.viewLabel = document.getElementById('view-label');
+        elements.viewDate = document.getElementById('view-date');
+        elements.viewLink = document.getElementById('view-link');
+        elements.viewTag = document.getElementById('view-tag');
+        elements.viewTagLine = document.getElementById('view-tag-line');
+        elements.viewCancel = document.getElementById('view-cancel');
+        elements.viewEdit = document.getElementById('view-edit');
       }
 
       function populateSelects() {
@@ -990,6 +1072,18 @@
           }
         });
 
+        if (elements.viewCancel) {
+          elements.viewCancel.addEventListener('click', () => {
+            state.viewingEventId = null;
+            showDisplayPanel();
+          });
+        }
+        if (elements.viewEdit) {
+          elements.viewEdit.addEventListener('click', () => {
+            showEditPanel(state.viewingEventId);
+          });
+        }
+
         if (elements.addButton) {
           elements.addButton.addEventListener('click', () => openAddPanel());
         }
@@ -1054,12 +1148,16 @@
 
       function hideAllPanels() {
         elements.panelDisplay.classList.add('hidden');
+        if (elements.panelView) {
+          elements.panelView.classList.add('hidden');
+        }
         elements.panelEdit.classList.add('hidden');
         elements.panelConfirm.classList.add('hidden');
         setAddSectionVisibility(false);
       }
 
       function showDisplayPanel() {
+        state.viewingEventId = null;
         hideAllPanels();
         elements.panelDisplay.classList.remove('hidden');
       }
@@ -1349,7 +1447,7 @@
           details.appendChild(deleteBtn);
           item.append(label, details);
           item.addEventListener('click', () => {
-            showEditPanel(eventItem.id);
+            showViewPanel(eventItem.id);
           });
           elements.eventList.appendChild(item);
         });
