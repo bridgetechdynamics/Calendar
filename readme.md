@@ -173,3 +173,20 @@ If you need to drive the calendar entirely from a backend script (for example, d
 - Keep the IDs unique when calling `addEvents` via the API; the UI incrementer only applies to the gated “Add Event” modal.
 - Use `CalendarApp.setMonthYear` when you want to show a different month in response to filters or navigation outside the calendar component.
 - Persist your own server-side cache if you need long-term storage—this calendar keeps things only in `localStorage`.
+- To make the UI read-only for less privileged users:
+  1. Call the `lockEditPanelInputs(true)` helper exposed in the script after `CalendarApp` loads (the bootstrap already calls it with `false` inside `cacheElements()`, so you can override it whenever you change editability) to flip the Edit panel inputs to read-only while keeping their normal styling.
+  2. Hide unwanted controls with CSS rather than removing the markup; the combination below hides everything at once but you can also apply each rule individually as needed:
+     ```css
+     #panel-confirm,
+     #add-event-button,
+     #panel-edit .hero-actions button,
+     .api-panel {
+       display: none !important;
+     }
+     ```
+     To hide them one-by-one:
+     - **Delete confirmation panel:** `#panel-confirm { display: none !important; }` keeps the JS reference but never shows the warning.
+     - **“Add Event” button:** `#add-event-button { display: none !important; }` removes the trigger while preserving the modal markup.
+     - **Edit/Cancel buttons:** `#panel-edit .hero-actions button { display: none !important; }` leaves the panel visible but read-only-ready.
+     - **API panel:** `.api-panel { display: none !important; }` hides the JSON controls but retains the wiring for future re-enable.
+  3. If you also want the read-only fields to look active, add `pointer-events: none; cursor: default;` or similar rules so the non-editable inputs still feel like normal text boxes even though typing is blocked.

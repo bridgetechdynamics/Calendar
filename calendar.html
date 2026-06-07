@@ -801,6 +801,14 @@
         }
       }
 
+      function lockEditPanelInputs(readonly = true) {
+        [elements.editLabel, elements.editHref, elements.editDate].forEach((input) => {
+          if (input) {
+            input.readOnly = readonly;
+          }
+        });
+      }
+
       function setTagConfig(tags = []) {
         state.tags = Array.isArray(tags) ? tags : [];
         tagLookup = new Map(state.tags.map((tag) => [tag.key, tag]));
@@ -893,6 +901,7 @@
         elements.editHref = document.getElementById('edit-href');
         elements.editDate = document.getElementById('edit-date');
         elements.editIdValue = document.getElementById('edit-id-value');
+        lockEditPanelInputs(false);
         elements.closePanel = document.querySelector('.close-panel');
         elements.holidayToggle = document.getElementById('holiday-toggle');
         elements.tagFilterRow = document.getElementById('tag-filter-row');
