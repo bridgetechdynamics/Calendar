@@ -796,6 +796,7 @@
           if (state.selectedDate && helpers.sameDay(isoDate, state.selectedDate)) {
             cell.classList.add('selected');
           }
+          cell.appendChild(dayNumber);
           cell.addEventListener('click', () => {
             state.selectedDate = isoDate;
             state.panelDate = isoDate;
@@ -804,8 +805,9 @@
           });
           const events = getEventsForDate(isoDate);
           const visibleEvents = applyTagFilter(events);
+          let badges = null;
           if (visibleEvents.length) {
-            const badges = document.createElement('div');
+            badges = document.createElement('div');
             badges.className = 'event-badges';
             visibleEvents.slice(0, 3).forEach((eventItem) => {
               const badge = document.createElement('div');
@@ -828,7 +830,6 @@
               });
               badges.appendChild(more);
             }
-            cell.appendChild(badges);
           }
           const isoMonthDay = `${helpers.pad(cellDate.getMonth() + 1)}-${helpers.pad(cellDate.getDate())}`;
           if (state.showHolidays && US_HOLIDAYS[isoMonthDay]) {
@@ -837,7 +838,9 @@
             holiday.textContent = US_HOLIDAYS[isoMonthDay];
             cell.appendChild(holiday);
           }
-          cell.appendChild(dayNumber);
+          if (badges) {
+            cell.appendChild(badges);
+          }
           fragment.appendChild(cell);
         }
 
