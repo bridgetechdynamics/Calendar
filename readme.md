@@ -1,11 +1,11 @@
 Dynamic Vanilla Calendar
 ========================
 
-This repository delivers a single-page, vanilla JavaScript calendar with a modern look, US holiday awareness, modal day/detail view, edit/delete flows, and a small public API that lets you seed, mutate, or inspect events after the page loads. The CSS now lives in `calendar.css` and the core calendar logic lives in `calendar-app.js`, so the HTML page just links those files and contains the lightweight bootstrap hook where you define your initial events/tags and the `EventDefinition` schema.
+This repository delivers a single-page, vanilla JavaScript calendar with a modern look, US holiday awareness, modal day/detail view, edit/delete flows, and a small public API that lets you seed, mutate, or inspect events after the page loads. The CSS lives in `calendar.css` and the core calendar logic lives in `calendar-app.js`, so the HTML page just links those files and contains the lightweight bootstrap hook where you define your initial events/tags and the `EventDefinition` schema.
 
 ## Getting started
 
-1. Open `calendar.html` in a browser (or serve it from any static hosting): everything lives in that file—HTML, CSS, and JavaScript.
+1. Open `calendar.html` in a browser (or serve it from any static hosting).
 2. The calendar automatically highlights today, supports month/year controls, remembers ad-hoc events via `localStorage`, and exposes the `CalendarApp` / `CalendarAPI` global for programmatic control.
 3. The `init(initialEvents)` helper seeds the calendar with whatever JSON events you like; the 3-part object shape is `{ id: number, label: string, date: 'YYYY-MM-DD', href?: string }`.
 
