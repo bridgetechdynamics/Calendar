@@ -1,7 +1,7 @@
 Dynamic Vanilla Calendar
 ========================
 
-This repository delivers a single-page, vanilla JavaScript calendar with a modern look, US holiday awareness, modal day/detail view, edit/delete flows, and a small public API that lets you seed, mutate, or inspect events after the page loads.
+This repository delivers a single-page, vanilla JavaScript calendar with a modern look, US holiday awareness, modal day/detail view, edit/delete flows, and a small public API that lets you seed, mutate, or inspect events after the page loads. The CSS now lives in `calendar.css` and the core calendar logic lives in `calendar-app.js`, so the HTML page just links those files and contains the lightweight bootstrap hook where you define your initial events/tags and the `EventDefinition` schema.
 
 ## Getting started
 
@@ -13,12 +13,13 @@ This repository delivers a single-page, vanilla JavaScript calendar with a moder
 
 Each method returns a `Promise` whenever it performs persistence or asynchronous work. You can access the API via `window.CalendarApp` or the `CalendarAPI` alias; both references are bound as soon as the script executes so you never get `CalendarApp is not defined` even if you call it very early.
 
-### `CalendarApp.init(initialEvents, tags)`
+### `CalendarApp.init(initialEvents, tags, eventDefinition)`
 
-- **Purpose:** bootstrap the calendar data and, optionally, the available tags when the page loads.
+- **Purpose:** bootstrap the calendar data, available tags, and the attribute definitions that describe how each event field is bound to the UI.
 - **Parameters:**
-  - `initialEvents` — an array of the `{id,label,date,href?}` objects you want to pre-render.
-  - `tags` — optional array of `{key,label,color?}` objects; if provided the Add/Edit modals show a tag chooser and the new filter row appears under the controls.
+  - `initialEvents` — an array of the `{id,label,date,href?,tag}` objects you want to pre-render.
+  - `tags` — optional array of `{key,label,color?}` objects; if provided the Add/Edit modals show the tag chooser and the filter row appears under the controls.
+  - `eventDefinition` — a simple schema that lists each attribute name plus the selectors the page uses for the add/edit/view controls, so the core module always reads/writes a consistent set of fields without hardcoding selectors itself.
 - **Returns:** resolves after the internal store is populated and the calendar is rendered.
 - **Example:**
   ```html
@@ -91,6 +92,11 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
 - The “Add Event” button opens a modal that mirrors the Edit flow but auto-generates the next ID (based on the highest ID every event has ever used) so the interface never asks the user to pick one manually.
 - When you save from the modal, the calendar persists the new event, closes the overlay, and re-selects the date so the list updates instantly.
 - If you pass a `tags` array into `init`, the Add/Edit modals show a drop-down and the calendar renders a row of tag bubbles beneath the header controls so you can filter the entire grid by a tag’s key; clicking a bubble toggles the filter and highlights the badge.
+- When you click an event badge in the day panel, a new “View Event” panel appears first; it provides read-only details plus Cancel (back to the list) and Edit buttons so you can decide whether to make changes.
+
+### Event definition schema
+
+The inline bootstrap script defines an `EventDefinition` object that currently lists the five attributes (`id`, `label`, `href`, `date`, `tag`) and the selectors used by the Add/Edit/View panels. That schema is handed to `CalendarApp.init` so the module can automatically read from the correct inputs, populate them, copy every attribute when persisting, and render the view panel. To add your own fields, update that `EventDefinition` object with the new attribute name and selectors (the HTML for the inputs stays where you placed it), and the module will include the new attribute everywhere across add/edit/render/persist without editing the core logic.
 - When you click an event badge in the day panel, a new “View Event” panel appears first; it provides read-only details plus Cancel (back to the list) and Edit buttons so you can decide whether to make changes.
 
 ## Example workflows
@@ -174,6 +180,7 @@ If you need to drive the calendar entirely from a backend script (for example, d
 - Keep the IDs unique when calling `addEvents` via the API; the UI incrementer only applies to the gated “Add Event” modal.
 - Use `CalendarApp.setMonthYear` when you want to show a different month in response to filters or navigation outside the calendar component.
 - Persist your own server-side cache if you need long-term storage—this calendar keeps things only in `localStorage`.
+- To add or rename event attributes, edit the `EventDefinition` in the HTML bootstrap (it lists each attribute name plus the selectors for the add/edit/view controls) so the shared module automatically includes the new fields everywhere.
 - To make the UI read-only for less privileged users:
   1. Call the `lockEditPanelInputs(true)` helper exposed in the script after `CalendarApp` loads (the bootstrap already calls it with `false` inside `cacheElements()`, so you can override it whenever you change editability) to flip the Edit panel inputs to read-only while keeping their normal styling.
   2. Hide unwanted controls with CSS rather than removing the markup; the combination below hides everything at once but you can also apply each rule individually as needed:
