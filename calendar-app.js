@@ -58,46 +58,137 @@
       }
 
       function lockEditPanelInputs(readonly = true) {
-        [elements.editLabel, elements.editHref, elements.editDate].forEach((input) => {
-          if (input) {
-            input.readOnly = readonly;
+        ['label', 'href', 'date'].forEach((field) => {
+          const element = selectFormElement(field, 'edit');
+          if (element) {
+            element.readOnly = readonly;
           }
         });
+      }
+
+      function getAttributeSelector(attrName, mode) {
+        const definition = state.eventDefinition;
+        if (!definition || !definition.attributes) {
+          return null;
+        }
+        const attribute = definition.attributes.find((item) => item.name === attrName);
+        if (!attribute) {
+          return null;
+        }
+        return attribute[`${mode}Selector`] || null;
+      }
+
+      function getAttributeElement(attrName, mode) {
+        const selector = getAttributeSelector(attrName, mode);
+        if (!selector) {
+          return null;
+        }
+        return document.querySelector(selector);
+      }
+
+      function getEventAttributes() {
+        return state.eventDefinition?.attributes || [];
+      }
+
+      function selectFormElement(fieldName, mode) {
+        return getAttributeElement(fieldName, mode);
+      }
+
+      function readFormAttribute(fieldName, mode) {
+        const element = selectFormElement(fieldName, mode);
+        if (!element) {
+          return undefined;
+        }
+        if (fieldName === 'tag') {
+          return getTagByKey(element.value);
+        }
+        return typeof element.value === 'string' ? element.value.trim() : element.value;
+      }
+
+      function writeFormAttribute(fieldName, mode, value) {
+        const element = selectFormElement(fieldName, mode);
+        if (!element) {
+          return;
+        }
+        if (fieldName === 'tag') {
+          element.value = value && value.key ? value.key : '';
+          return;
+        }
+        element.value = value || '';
+      }
+
+      function buildEventFromForm(mode) {
+        const record = {};
+        getEventAttributes().forEach((attr) => {
+          if (attr.name === 'id') {
+            return;
+          }
+          const value = readFormAttribute(attr.name, mode);
+          if (typeof value !== 'undefined' && value !== '') {
+            record[attr.name] = value;
+          }
+        });
+        return record;
+      }
+
+      function buildEventRecord(source) {
+        const record = {};
+        getEventAttributes().forEach((attr) => {
+          if (attr.name === 'tag') {
+            if (source.tag) {
+              record.tag = source.tag;
+            }
+            return;
+          }
+          if (typeof source[attr.name] !== 'undefined') {
+            record[attr.name] = source[attr.name];
+          }
+        });
+        return record;
       }
 
       function populateViewPanel(eventData) {
         if (!eventData || !elements.panelView) {
           return;
         }
-        if (elements.viewIdValue) {
-          elements.viewIdValue.textContent = eventData.id;
-        }
-        if (elements.viewLabel) {
-          elements.viewLabel.textContent = eventData.label;
-        }
-        if (elements.viewDate) {
-          elements.viewDate.textContent = eventData.date;
-        }
-        if (elements.viewLink) {
-          if (eventData.href) {
-            elements.viewLink.href = eventData.href;
-            elements.viewLink.textContent = eventData.href;
-            elements.viewLink.parentElement?.classList.remove('hidden');
-          } else {
-            elements.viewLink.removeAttribute('href');
-            elements.viewLink.textContent = '';
-            elements.viewLink.parentElement?.classList.add('hidden');
+        const viewFields = state.eventDefinition?.attributes || [];
+        viewFields.forEach((attr) => {
+          if (attr.name === 'tag') {
+            const tagEl = getAttributeElement('tag', 'view');
+            if (!tagEl) {
+              return;
+            }
+            if (eventData.tag) {
+              tagEl.textContent = eventData.tag.label;
+              elements.viewTagLine?.classList.remove('hidden');
+            } else {
+              tagEl.textContent = '';
+              elements.viewTagLine?.classList.add('hidden');
+            }
+            return;
           }
-        }
-        if (elements.viewTag) {
-          if (eventData.tag) {
-            elements.viewTag.textContent = eventData.tag.label;
-            elements.viewTagLine?.classList.remove('hidden');
-          } else {
-            elements.viewTag.textContent = '';
-            elements.viewTagLine?.classList.add('hidden');
+          if (attr.name === 'href') {
+            const linkEl = getAttributeElement('href', 'view');
+            if (!linkEl) {
+              return;
+            }
+            if (eventData.href) {
+              linkEl.href = eventData.href;
+              linkEl.textContent = eventData.href;
+              linkEl.parentElement?.classList.remove('hidden');
+            } else {
+              linkEl.removeAttribute('href');
+              linkEl.textContent = '';
+              linkEl.parentElement?.classList.add('hidden');
+            }
+            return;
           }
-        }
+          const el = getAttributeElement(attr.name, 'view');
+          if (!el) {
+            return;
+          }
+          el.textContent = eventData[attr.name] || '';
+        });
       }
 
       function showViewPanel(eventId) {
@@ -111,6 +202,11 @@
         if (elements.panelView) {
           elements.panelView.classList.remove('hidden');
         }
+      }
+
+      function setEventDefinition(definition = null) {
+        state.eventDefinition = definition || { attributes: [] };
+        lockEditPanelInputs(false);
       }
 
       function setTagConfig(tags = []) {
@@ -129,14 +225,16 @@
       }
 
       function populateTagSelects() {
-        const selects = [elements.editTagSelect, elements.addTagSelect].filter(Boolean);
+        const editSelect = getAttributeElement('tag', 'edit');
+        const addSelect = getAttributeElement('tag', 'add');
+        const selects = [editSelect, addSelect].filter(Boolean);
+        const options = ['<option value="">None</option>', ...state.tags.map((tag) => `<option value="${tag.key}">${tag.label}</option>`)];
         if (!state.tags.length) {
           selects.forEach((select) => {
             select.innerHTML = '<option value="">None</option>';
           });
           return;
         }
-        const options = ['<option value="">None</option>', ...state.tags.map((tag) => `<option value="${tag.key}">${tag.label}</option>`)];
         selects.forEach((select) => {
           select.innerHTML = options.join('');
         });
@@ -210,8 +308,6 @@
         elements.closePanel = document.querySelector('.close-panel');
         elements.holidayToggle = document.getElementById('holiday-toggle');
         elements.tagFilterRow = document.getElementById('tag-filter-row');
-        elements.editTagSelect = document.getElementById('edit-tag');
-        elements.addTagSelect = document.getElementById('add-tag');
         elements.tagSelectGroups = document.querySelectorAll('[data-role="tag-select"]');
         elements.addButton = document.getElementById('add-event-button');
         elements.panelAdd = document.getElementById('panel-add');
@@ -221,10 +317,6 @@
         elements.addDate = document.getElementById('add-date');
         elements.addIdValue = document.getElementById('add-id-value');
         elements.cancelAdd = document.getElementById('cancel-add');
-        elements.viewIdValue = document.getElementById('view-id-value');
-        elements.viewLabel = document.getElementById('view-label');
-        elements.viewDate = document.getElementById('view-date');
-        elements.viewLink = document.getElementById('view-link');
         elements.viewTag = document.getElementById('view-tag');
         elements.viewTagLine = document.getElementById('view-tag-line');
         elements.viewCancel = document.getElementById('view-cancel');
@@ -337,13 +429,9 @@
             showDisplayPanel();
             return;
           }
-        existingEvent.label = elements.editLabel.value.trim();
-        existingEvent.href = elements.editHref.value.trim() || undefined;
-        existingEvent.date = elements.editDate.value;
-        if (elements.editTagSelect) {
-          existingEvent.tag = getTagByKey(elements.editTagSelect.value);
-        }
-        eventsById.set(eventId, existingEvent);
+          const updates = buildEventFromForm('edit');
+          Object.assign(existingEvent, updates);
+          eventsById.set(eventId, existingEvent);
           persistEvents();
           if (state.panelDate !== existingEvent.date) {
             state.panelDate = existingEvent.date;
@@ -394,12 +482,12 @@
       }
 
       function clearEditFields() {
-        if (elements.editLabel) elements.editLabel.value = '';
-        if (elements.editHref) elements.editHref.value = '';
-        if (elements.editDate) elements.editDate.value = '';
-        if (elements.editIdValue) elements.editIdValue.textContent = '';
-        if (elements.editTagSelect) {
-          elements.editTagSelect.value = '';
+        writeFormAttribute('label', 'edit', '');
+        writeFormAttribute('href', 'edit', '');
+        writeFormAttribute('date', 'edit', '');
+        writeFormAttribute('tag', 'edit', null);
+        if (elements.editIdValue) {
+          elements.editIdValue.textContent = '';
         }
       }
 
@@ -408,12 +496,12 @@
           clearEditFields();
           return;
         }
-        if (elements.editLabel) elements.editLabel.value = eventData.label;
-        if (elements.editHref) elements.editHref.value = eventData.href || '';
-        if (elements.editDate) elements.editDate.value = eventData.date || '';
-        if (elements.editIdValue) elements.editIdValue.textContent = eventData.id;
-        if (elements.editTagSelect) {
-          elements.editTagSelect.value = eventData.tag ? eventData.tag.key : '';
+        writeFormAttribute('label', 'edit', eventData.label);
+        writeFormAttribute('href', 'edit', eventData.href || '');
+        writeFormAttribute('date', 'edit', eventData.date || '');
+        writeFormAttribute('tag', 'edit', eventData.tag || null);
+        if (elements.editIdValue) {
+          elements.editIdValue.textContent = eventData.id;
         }
       }
 
@@ -464,28 +552,16 @@
 
       function handleAddFormSubmit(event) {
         event.preventDefault();
-        if (!elements.addLabel || !elements.addDate) {
+        const formData = buildEventFromForm('add');
+        if (!formData.label || !formData.date) {
           return;
         }
-        const label = elements.addLabel.value.trim();
-        const dateValue = elements.addDate.value;
-        if (!label || !dateValue) {
-          return;
-        }
-        const href = elements.addHref ? elements.addHref.value.trim() : '';
         const proposedId = Math.max(highestEventId, state.pendingAddEventId || 0) + 1;
         state.pendingAddEventId = proposedId;
         if (elements.addIdValue) {
           elements.addIdValue.textContent = proposedId;
         }
-        const newEvent = { id: proposedId, label, date: dateValue };
-        const selectedTag = elements.addTagSelect ? getTagByKey(elements.addTagSelect.value) : undefined;
-        if (selectedTag) {
-          newEvent.tag = selectedTag;
-        }
-        if (href) {
-          newEvent.href = href;
-        }
+        const newEvent = { id: proposedId, ...formData };
         eventsById.set(proposedId, newEvent);
         updateHighestId(proposedId);
         persistEvents();
@@ -535,6 +611,7 @@
           return;
         }
         state.editingEventId = targetId;
+        populateTagSelects();
         populateEditFields(eventData);
         hideAllPanels();
         setEditSectionVisibility(true);
@@ -853,15 +930,7 @@
           skipped.push({ reason: 'duplicate id', id: eventItem.id });
           return;
         }
-        const record = {
-          id: eventItem.id,
-          label: eventItem.label,
-          href: eventItem.href,
-          date: eventItem.date
-        };
-        if (eventItem.tag) {
-          record.tag = eventItem.tag;
-        }
+        const record = buildEventRecord({ id: eventItem.id, ...eventItem });
         eventsById.set(eventItem.id, record);
         updateHighestId(eventItem.id);
         added.push(eventItem.id);
@@ -932,12 +1001,13 @@
       }
 
       // this is where intialEvents are made persistant
-      function init(initialEvents = [], initialTags = []) {
+      function init(initialEvents = [], initialTags = [], eventDefinition = null) {
         cacheElements();
         populateSelects();
         attachControlHandlers();
         loadEvents();
         setTagConfig(initialTags);
+        setEventDefinition(eventDefinition);
         state.selectedDate = helpers.formatISO(new Date());
         if (!eventsById.size && initialEvents.length) {
           addEvents(initialEvents, { skipPersist: true }).then(() => {
