@@ -20,6 +20,7 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
   - `initialEvents` — an array of the `{id,label,date,href?,tag}` objects you want to pre-render.
   - `tags` — optional array of `{key,label,color?}` objects; if provided the Add/Edit modals show the tag chooser and the filter row appears under the controls.
   - `eventDefinition` — a simple schema that lists each attribute name plus the selectors the page uses for the add/edit/view controls, so the core module always reads/writes a consistent set of fields without hardcoding selectors itself.
+  - `cacheOptions` — optional object that can include `pre_cache` (persist the provided `initialEvents` before reading `localStorage`) or `post_cache` (overwrite the cache with the provided events after loading) so you can choose whether the stored data defers to your remote source.
 - **Returns:** resolves after the internal store is populated and the calendar is rendered.
 - **Example:**
   ```html
@@ -180,6 +181,7 @@ If you need to drive the calendar entirely from a backend script (for example, d
 - Keep the IDs unique when calling `addEvents` via the API; the UI incrementer only applies to the gated “Add Event” modal.
 - Use `CalendarApp.setMonthYear` when you want to show a different month in response to filters or navigation outside the calendar component.
 - Persist your own server-side cache if you need long-term storage—this calendar keeps things only in `localStorage`.
+- Use the `cacheOptions` object passed into `CalendarApp.init` if you need to control the cache on load: `pre_cache` pushes your provided events into storage before reading it, while `post_cache` overwrites the stored events with your payload after loading so a remote data pull can replace any previously cached set.
 - To add or rename event attributes, edit the `EventDefinition` in the HTML bootstrap (it lists each attribute name plus the selectors for the add/edit/view controls) so the shared module automatically includes the new fields everywhere.
 - To make the UI read-only for less privileged users:
   1. Call the `lockEditPanelInputs(true)` helper exposed in the script after `CalendarApp` loads (the bootstrap already calls it with `false` inside `cacheElements()`, so you can override it whenever you change editability) to flip the Edit panel inputs to read-only while keeping their normal styling.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dynamic Vanilla Calendar</title>
-  <link rel="stylesheet" href="calendar.css">
+  <link rel="stylesheet" href="calendar.css?v=1">
   <style>
     /* Use rules like #panel-confirm, #add-event-button, #panel-edit .hero-actions button, and .api-panel to hide controls via CSS. */
   </style>
@@ -180,7 +180,7 @@
     </div>
   </div>
 
-  <script src="calendar-app.js?v=2"></script>
+  <script src="calendar-app.js?v=3"></script>
   <script>
     const EventDefinition = {
       attributes: [
@@ -209,7 +209,7 @@
         { id: 5, label: 'Client demo', date: `${year}-${month}-27`, tag: initialTags[0], href: 'https://example.com/demo' },
         { id: 6, label: 'Team sync', date: `${year}-${month}-27`, tag: initialTags[1] }
       ];
-      window.CalendarApp.init(initialEvents, initialTags, EventDefinition);
+      window.CalendarApp.init(initialEvents, initialTags, EventDefinition,{ post_cache: true });
       if (typeof window.attachCalendarApiPanelHandlers === 'function') {
         window.attachCalendarApiPanelHandlers();
       }

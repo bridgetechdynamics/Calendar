@@ -921,21 +921,42 @@
         elements.dayPanel.setAttribute('aria-hidden', 'false');
       }
 
+      function seedEvents(eventsList, { overwrite = false, persist = true } = {}) {
+        if (!Array.isArray(eventsList) || !eventsList.length) {
+          return false;
+        }
+        if (overwrite) {
+          eventsById.clear();
+        }
+        eventsList.forEach((eventItem) => {
+          if (!eventItem || typeof eventItem.id === 'undefined') {
+            return;
+          }
+          const record = buildEventRecord({ id: eventItem.id, ...eventItem });
+          eventsById.set(eventItem.id, record);
+          updateHighestId(eventItem.id);
+        });
+        if (persist) {
+          persistEvents();
+        }
+        return true;
+      }
+
       function addEvents(incoming = [], { skipPersist = false } = {}) {
         const added = [];
         const skipped = [];
         incoming.forEach((eventItem) => {
-        if (!eventItem || typeof eventItem.id === 'undefined' || typeof eventItem.label !== 'string' || !eventItem.date) {
-          skipped.push({ reason: 'invalid payload', payload: eventItem });
-          return;
-        }
-        if (eventsById.has(eventItem.id)) {
-          skipped.push({ reason: 'duplicate id', id: eventItem.id });
-          return;
-        }
-        const record = buildEventRecord({ id: eventItem.id, ...eventItem });
-        eventsById.set(eventItem.id, record);
-        updateHighestId(eventItem.id);
+          if (!eventItem || typeof eventItem.id === 'undefined' || typeof eventItem.label !== 'string' || !eventItem.date) {
+            skipped.push({ reason: 'invalid payload', payload: eventItem });
+            return;
+          }
+          if (eventsById.has(eventItem.id)) {
+            skipped.push({ reason: 'duplicate id', id: eventItem.id });
+            return;
+          }
+          const record = buildEventRecord({ id: eventItem.id, ...eventItem });
+          eventsById.set(eventItem.id, record);
+          updateHighestId(eventItem.id);
         added.push(eventItem.id);
       });
         if (added.length && !skipPersist) {
@@ -1004,7 +1025,7 @@
       }
 
       // this is where intialEvents are made persistant
-      function init(initialEvents = [], initialTags = [], eventDefinition = null) {
+      function init(initialEvents = [], initialTags = [], eventDefinition = null, cacheOptions = {}) {
         cacheElements();
         populateSelects();
         attachControlHandlers();
@@ -1012,14 +1033,25 @@
         setTagConfig(initialTags);
         setEventDefinition(eventDefinition);
         state.selectedDate = helpers.formatISO(new Date());
-        if (!eventsById.size && initialEvents.length) {
+        const { pre_cache = false, post_cache = false } = cacheOptions;
+        if (pre_cache && initialEvents.length) {
+          seedEvents(initialEvents, { overwrite: true, persist: true });
+        }
+        const shouldOverwriteCache = post_cache && initialEvents.length && !pre_cache;
+        const shouldSeedDefault = !eventsById.size && initialEvents.length;
+        if (shouldOverwriteCache) {
+          seedEvents(initialEvents, { overwrite: true, persist: true });
+          render();
+          return;
+        }
+        if (shouldSeedDefault) {
           addEvents(initialEvents, { skipPersist: true }).then(() => {
             persistEvents();
             render();
           });
-        } else {
-          render();
+          return;
         }
+        render();
       }
 
       const publicAPI = {
