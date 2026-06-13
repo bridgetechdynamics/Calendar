@@ -927,6 +927,7 @@
         }
         if (overwrite) {
           eventsById.clear();
+          highestEventId = 0;
         }
         eventsList.forEach((eventItem) => {
           if (!eventItem || typeof eventItem.id === 'undefined') {
@@ -1029,22 +1030,35 @@
         cacheElements();
         populateSelects();
         attachControlHandlers();
-        loadEvents();
+        const { pre_cache = false, post_cache = false } = cacheOptions;
+        const cacheEnabled = pre_cache || post_cache;
+        state.cacheEnabled = cacheEnabled;
+        if (!cacheEnabled) {
+          eventsById.clear();
+          highestEventId = 0;
+        }
         setTagConfig(initialTags);
         setEventDefinition(eventDefinition);
-        state.selectedDate = helpers.formatISO(new Date());
-        const { pre_cache = false, post_cache = false } = cacheOptions;
-        if (pre_cache && initialEvents.length) {
-          seedEvents(initialEvents, { overwrite: true, persist: true });
+        if (cacheEnabled && pre_cache) {
+          loadEvents();
+          if (!eventsById.size && initialEvents.length) {
+            seedEvents(initialEvents, { overwrite: true, persist: true });
+          }
         }
-        const shouldOverwriteCache = post_cache && initialEvents.length && !pre_cache;
-        const shouldSeedDefault = !eventsById.size && initialEvents.length;
-        if (shouldOverwriteCache) {
+        if (!cacheEnabled && initialEvents.length) {
+          seedEvents(initialEvents, { overwrite: true, persist: false });
+        }
+        state.selectedDate = helpers.formatISO(new Date());
+        if (cacheEnabled && post_cache && initialEvents.length && !pre_cache) {
           seedEvents(initialEvents, { overwrite: true, persist: true });
           render();
           return;
         }
-        if (shouldSeedDefault) {
+        if (!cacheEnabled) {
+          render();
+          return;
+        }
+        if (!eventsById.size && initialEvents.length) {
           addEvents(initialEvents, { skipPersist: true }).then(() => {
             persistEvents();
             render();
