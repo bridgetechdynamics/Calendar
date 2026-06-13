@@ -13,7 +13,7 @@ This repository delivers a single-page, vanilla JavaScript calendar with a moder
 
 Each method returns a `Promise` whenever it performs persistence or asynchronous work. You can access the API via `window.CalendarApp` or the `CalendarAPI` alias; both references are bound as soon as the script executes so you never get `CalendarApp is not defined` even if you call it very early.
 
-### `CalendarApp.init(initialEvents, tags, eventDefinition)`
+### `CalendarApp.init(initialEvents, tags, eventDefinition, cacheOptions)`
 
 - **Purpose:** bootstrap the calendar data, available tags, and the attribute definitions that describe how each event field is bound to the UI.
 - **Parameters:**
@@ -26,9 +26,26 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
   ```html
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      CalendarApp.init([
-        { id: 1, label: 'Design review', date: '2026-04-02', href: 'https://...' }
-      ]);
+      const definition = {
+        attributes: [
+          { name: 'id' },
+          { name: 'label', editSelector: '#edit-label', addSelector: '#add-label', viewSelector: '#view-label' },
+          { name: 'href', editSelector: '#edit-href', addSelector: '#add-href', viewSelector: '#view-link' },
+          { name: 'date', editSelector: '#edit-date', addSelector: '#add-date', viewSelector: '#view-date' },
+          { name: 'tag', editSelector: '#edit-tag', addSelector: '#add-tag', viewSelector: '#view-tag' }
+        ]
+      };
+      const tags = [{ key: 'foo', label: 'Foo', color: 'red' }];
+      const events = [{ id: 1, label: 'Design review', date: '2026-04-02', href: 'https://...', tag: tags[0] }];
+
+      // default seed, respects existing cache
+      CalendarApp.init(events, tags, definition);
+
+      // persist events before reading cache (good for first-run seed)
+      CalendarApp.init(events, tags, definition, { pre_cache: true });
+
+      // load from cache then overwrite it with your payload (ideal for DB-driven reloads)
+      CalendarApp.init(events, tags, definition, { post_cache: true });
     });
   </script>
   ```
