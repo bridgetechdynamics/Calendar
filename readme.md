@@ -20,7 +20,10 @@ Each method returns a `Promise` whenever it performs persistence or asynchronous
   - `initialEvents` — an array of the `{id,label,date,href?,tag}` objects you want to pre-render.
   - `tags` — optional array of `{key,label,color?}` objects; if provided the Add/Edit modals show the tag chooser and the filter row appears under the controls.
   - `eventDefinition` — a simple schema that lists each attribute name plus the selectors the page uses for the add/edit/view controls, so the core module always reads/writes a consistent set of fields without hardcoding selectors itself.
-  - `cacheOptions` — optional object that can include `pre_cache` (persist the provided `initialEvents` as the canonical copy so they survive reloads and keep localStorage up to date) or `post_cache` (overwrite the cache with the provided events after loading so your database query always replaces previous storage); when neither flag is true the module won’t touch `localStorage` at all.
+  - `cacheOptions` — optional object that controls when `localStorage` participates:
+    * `pre_cache`: load from the constructor payload, merge in whatever is already cached, persist the merged set, and render (cached edits stay visible but your defaults always apply first).
+    * `post_cache`: load whatever is in the cache, then overlay the constructor payload on top and persist that merge so a database pull replaces earlier cached records.
+    * neither flag: only seed the calendar with the payload from the constructor and skip `localStorage` entirely (no reads or writes), which is ideal when you don’t want the cache to interfere with large datasets.
 - **Returns:** resolves after the internal store is populated and the calendar is rendered.
 - **Example:**
   ```html
