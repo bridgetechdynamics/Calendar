@@ -1033,28 +1033,36 @@
         const { pre_cache = false, post_cache = false } = cacheOptions;
         const cacheEnabled = pre_cache || post_cache;
         state.cacheEnabled = cacheEnabled;
+        setTagConfig(initialTags);
+        setEventDefinition(eventDefinition);
         if (!cacheEnabled) {
           eventsById.clear();
           highestEventId = 0;
-        }
-        setTagConfig(initialTags);
-        setEventDefinition(eventDefinition);
-        if (cacheEnabled && pre_cache) {
-          loadEvents();
-          if (!eventsById.size && initialEvents.length) {
-            seedEvents(initialEvents, { overwrite: true, persist: true });
+          if (initialEvents.length) {
+            seedEvents(initialEvents, { overwrite: true, persist: false });
           }
-        }
-        if (!cacheEnabled && initialEvents.length) {
-          seedEvents(initialEvents, { overwrite: true, persist: false });
-        }
-        state.selectedDate = helpers.formatISO(new Date());
-        if (cacheEnabled && post_cache && initialEvents.length && !pre_cache) {
-          seedEvents(initialEvents, { overwrite: true, persist: true });
+          state.selectedDate = helpers.formatISO(new Date());
           render();
           return;
         }
-        if (!cacheEnabled) {
+        eventsById.clear();
+        highestEventId = 0;
+        if (pre_cache) {
+          if (initialEvents.length) {
+            seedEvents(initialEvents, { overwrite: true, persist: false });
+          }
+          loadEvents({ merge: true });
+          persistEvents();
+          state.selectedDate = helpers.formatISO(new Date());
+          render();
+          return;
+        }
+        loadEvents();
+        state.selectedDate = helpers.formatISO(new Date());
+        if (post_cache) {
+          if (initialEvents.length) {
+            seedEvents(initialEvents, { overwrite: false, persist: true });
+          }
           render();
           return;
         }
